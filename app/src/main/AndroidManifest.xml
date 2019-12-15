@@ -9,15 +9,17 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".ViewTrip"></activity>
+        <activity android:name=".GenerateReport"></activity>
+        <activity android:name=".ViewMembers" />
+        <activity android:name=".ViewTrip" />
         <activity android:name=".ExpenseChart" />
         <activity android:name=".AddExpense" />
         <activity android:name=".AddMember" />
         <activity android:name=".AddTrip" />
         <activity android:name=".RegisterActivity" />
-        <activity android:name=".LoginActivity" />
+        <activity android:name=".MainActivity" />
         <activity
-            android:name=".MainActivity"
+            android:name=".LoginActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>

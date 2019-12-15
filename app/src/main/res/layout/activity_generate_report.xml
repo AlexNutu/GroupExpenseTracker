@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ViewTrip">
+    tools:context=".GenerateReport">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
@@ -25,10 +25,10 @@
     </com.google.android.material.appbar.AppBarLayout>
 
     <TextView
-        android:id="@+id/tvViewTrip"
+        android:id="@+id/tvReport"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="View Trip"
+        android:text="Trip Report"
         android:textAllCaps="false"
         android:textSize="24sp"
         android:textStyle="bold"
@@ -37,25 +37,5 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/appBarLayout"
         app:layout_constraintVertical_bias="0.15" />
-
-    <ImageButton
-        android:id="@+id/viewMembersBtn"
-        android:layout_width="53dp"
-        android:layout_height="48dp"
-        android:background="@android:drawable/ic_menu_my_calendar"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.98"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/appBarLayout" />
-
-    <ImageButton
-        android:id="@+id/genReportBtn"
-        android:layout_width="45dp"
-        android:layout_height="45dp"
-        android:background="@android:drawable/ic_menu_today"
-        app:layout_constraintEnd_toStartOf="@+id/viewMembersBtn"
-        app:layout_constraintHorizontal_bias="0.023"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/appBarLayout" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
