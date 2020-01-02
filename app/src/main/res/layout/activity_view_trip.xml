@@ -36,7 +36,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/appBarLayout"
-        app:layout_constraintVertical_bias="0.15" />
+        app:layout_constraintVertical_bias="0.175" />
 
     <ImageButton
         android:id="@+id/viewMembersBtn"
@@ -57,5 +57,53 @@
         app:layout_constraintHorizontal_bias="0.023"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/appBarLayout" />
+
+    <com.getbase.floatingactionbutton.FloatingActionsMenu
+        android:layout_width="100dp"
+        android:layout_height="171dp"
+        android:layout_marginTop="219dp"
+        app:fab_addButtonColorNormal="@color/colorPrimary"
+        app:fab_addButtonColorPressed="@color/green_pressed"
+        app:fab_addButtonPlusIconColor="@color/cross"
+        app:fab_labelStyle="@style/custom_fab"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.979"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvViewTrip"
+        app:layout_constraintVertical_bias="0.909"
+        app:srcCompat="@android:drawable/ic_input_add">
+
+        <com.getbase.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab_action1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:fab_colorNormal="@color/white"
+            app:fab_colorPressed="@color/white_pressed"
+            app:fab_icon="@drawable/ic_add_green"
+            app:fab_size="mini"
+            app:fab_title="Individual Expense" />
+
+        <com.getbase.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab_action2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:fab_colorNormal="@color/white"
+            app:fab_colorPressed="@color/white_pressed"
+            app:fab_icon="@drawable/ic_add_green"
+            app:fab_size="mini"
+            app:fab_title="Group Expense" />
+
+    </com.getbase.floatingactionbutton.FloatingActionsMenu>
+
+    <ImageButton
+        android:id="@+id/toDoListBtn"
+        android:layout_width="45dp"
+        android:layout_height="42dp"
+        android:layout_marginBottom="18dp"
+        android:background="@drawable/ic_format_list_numbered_black_24dp"
+        app:layout_constraintBottom_toTopOf="@+id/tvViewTrip"
+        app:layout_constraintEnd_toStartOf="@+id/viewMembersBtn"
+        app:layout_constraintStart_toEndOf="@+id/genReportBtn" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
