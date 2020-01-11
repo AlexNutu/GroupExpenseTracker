@@ -1,28 +1,46 @@
 package com.example.expensetracker;
 
-import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.example.expensetracker.helper.DatabaseHelper;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import static android.os.Build.VERSION_CODES.N;
 
 public class MainActivity extends AppCompatActivity {
 
     DatabaseHelper db;
+
+    // list of trips
+    private ListView lv;
+
+    // adapter for list view
+    private ArrayAdapter<String> adapter;
+
+    private EditText inputSearch;
+
+    // arraylist for listview
+    ArrayList<HashMap<String, String>> tripList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,31 +55,6 @@ public class MainActivity extends AppCompatActivity {
         addTripButton();
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        ConnectivityManager cm = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-
-        //if there is a network
-        if (activeNetwork != null) {
-            //if connected to wifi or mobile data plan
-            if (activeNetwork.getType() == ConnectivityManager.TYPE_WIFI || activeNetwork.getType() == ConnectivityManager.TYPE_MOBILE) {
-                TextView myAwesomeTextView = (TextView)findViewById(R.id.networkStateText);
-                myAwesomeTextView.setText("You are in Online Mode");
-            }
-            else
-            {
-                TextView myAwesomeTextView = (TextView)findViewById(R.id.networkStateText);
-                myAwesomeTextView.setText("You are in Offline Mode");
-            }
-        }
-        else{
-                TextView myAwesomeTextView = (TextView)findViewById(R.id.networkStateText);
-                myAwesomeTextView.setText("You are in Offline Mode");
-        }
-    }
-
     private void addTripButton() {
         FloatingActionButton addTrip = (FloatingActionButton) findViewById(R.id.floatingAddTripButton);
         addTrip.setOnClickListener(new View.OnClickListener() {
@@ -74,40 +67,43 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void addTrips() {
+    public void addTrips() {
+        final String trips[] = {"Trip1", "Trip2", "Trip3", "Trip4"};
 
-        LinearLayout tripListLayout = (LinearLayout) findViewById(R.id.tripList);
+        lv = (ListView) findViewById(R.id.tripsListView);
+        inputSearch = (EditText) findViewById(R.id.searchET);
 
-        // N is 24
-        final TextView[] myTextViews = new TextView[N]; // create an empty array;
+        // adding item to list view
+        adapter = new ArrayAdapter<String>(this, R.layout.list_item, R.id.trip_name, trips);
+        lv.setAdapter(adapter);
 
-        for (int i = 1; i <= N - 20; i++) {
-            // create a new textview
-            final TextView rowTextView = new TextView(this);
+        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent myIntent = new Intent(MainActivity.this, ViewTrip.class);
+                myIntent.putExtra("tripName", adapter.getItem(position));
+                startActivity(myIntent);
+            }
+        });
 
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
-                    170);
-            //Setting the above params to our TextView
-            rowTextView.setLayoutParams(params);
+        // enable search
+        inputSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
-            // set some properties of rowTextView or something
-            rowTextView.setText("Trip " + i);
-            rowTextView.setTextSize(18);
+            }
 
-            rowTextView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent myIntent = new Intent(MainActivity.this, ViewTrip.class);
-                    startActivity(myIntent);
-                }
-            });
+            @Override
+            public void onTextChanged(CharSequence cs, int start, int before, int count) {
+                MainActivity.this.adapter.getFilter().filter(cs);
+            }
 
-            // add the textview to the linearlayout
-            tripListLayout.addView(rowTextView);
+            @Override
+            public void afterTextChanged(Editable s) {
 
-            // save a reference to the textview for later
-            myTextViews[i] = rowTextView;
-        }
+            }
+        });
+
     }
 
     @Override
