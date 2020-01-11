@@ -106,8 +106,11 @@ public class ViewTrip extends AppCompatActivity implements ExpenseDialogListener
         genReportBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent genReportIntent = new Intent(ViewTrip.this, GenerateReport.class);
-                startActivity(genReportIntent);
+                Intent intent = new Intent(ViewTrip.this, ViewReport.class);
+                if (getIntent() != null) {
+                    intent.putExtra("tripId", getIntent().getIntExtra("tripId", 0));
+                }
+                startActivity(intent);
             }
         });
 
