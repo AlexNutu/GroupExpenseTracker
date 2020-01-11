@@ -38,12 +38,12 @@ public class RegisterActivity extends AppCompatActivity {
         seeDemoTV.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                openDialog();
+                openDemoDialog();
             }
         });
     }
 
-    private void openDialog() {
+    private void openDemoDialog() {
         DemoDialog demoDialog = new DemoDialog();
         demoDialog.show(getSupportFragmentManager(), "example dialog");
     }

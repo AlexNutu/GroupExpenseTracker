@@ -1,31 +1,29 @@
 package com.example.expensetracker;
 
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.ListView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.view.View;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.ListView;
-import android.widget.TextView;
-
+import com.example.expensetracker.domain.Trip;
 import com.example.expensetracker.helper.DatabaseHelper;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-
-import static android.os.Build.VERSION_CODES.N;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.web.client.RestTemplate;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -39,9 +37,6 @@ public class MainActivity extends AppCompatActivity {
 
     private EditText inputSearch;
 
-    // arraylist for listview
-    ArrayList<HashMap<String, String>> tripList;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,8 +46,8 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        addTrips();
         addTripButton();
+        new GetTripsReqTask().execute();
     }
 
     private void addTripButton() {
@@ -67,21 +62,30 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void addTrips() {
-        final String trips[] = {"Trip1", "Trip2", "Trip3", "Trip4"};
+    public void addTrips(final Trip[] tripsFromDB) {
+        final String[] tripStrings = new String[tripsFromDB.length];
+        for (int i = 0; i < tripsFromDB.length; i++) {
+            tripStrings[i] = tripsFromDB[i].getName();
+        }
 
         lv = (ListView) findViewById(R.id.tripsListView);
         inputSearch = (EditText) findViewById(R.id.searchET);
 
         // adding item to list view
-        adapter = new ArrayAdapter<String>(this, R.layout.list_item, R.id.trip_name, trips);
+        adapter = new ArrayAdapter<String>(this, R.layout.list_item, R.id.trip_name, tripStrings);
         lv.setAdapter(adapter);
 
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent myIntent = new Intent(MainActivity.this, ViewTrip.class);
-                myIntent.putExtra("tripName", adapter.getItem(position));
+                Integer tripIdToSend = -1;
+                for (int i = 0; i < tripsFromDB.length; i++) {
+                    if (tripsFromDB[i].getName().equals(adapter.getItem(position))) {
+                        tripIdToSend = tripsFromDB[i].getId();
+                    }
+                }
+                myIntent.putExtra("tripId", tripIdToSend);
                 startActivity(myIntent);
             }
         });
@@ -103,7 +107,32 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+    }
 
+    private class GetTripsReqTask extends AsyncTask<Void, Void, Trip[]> {
+
+        @Override
+        protected Trip[] doInBackground(Void... voids) {
+
+            Trip[] tripsFromDB = {};
+            try {
+                String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/trip";
+                RestTemplate restTemplate = new RestTemplate();
+                restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+                ResponseEntity<Trip[]> responseEntity = restTemplate.getForEntity(apiUrl, Trip[].class);
+                tripsFromDB = responseEntity.getBody();
+
+            } catch (Exception e) {
+                Log.e("ERROR-GET-TRIPS", e.getMessage());
+            }
+
+            return tripsFromDB;
+        }
+
+        @Override
+        protected void onPostExecute(Trip[] tripsFromDB) {
+            addTrips(tripsFromDB);
+        }
     }
 
     @Override

@@ -22,7 +22,7 @@ public class DemoDialog extends AppCompatDialogFragment {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
         LayoutInflater inflater = getActivity().getLayoutInflater();
-        View view = inflater.inflate(R.layout.layout_dialog, null);
+        View view = inflater.inflate(R.layout.demo_layout_dialog, null);
 
         builder.setView(view)
                 .setTitle("Demo")
@@ -39,7 +39,7 @@ public class DemoDialog extends AppCompatDialogFragment {
                     }
                 });
 
-        dialogTitle = (TextView) view.findViewById(R.id.dialogTitle);
+        dialogTitle = (TextView) view.findViewById(R.id.demoDialogTitle);
 
         return builder.create();
     }

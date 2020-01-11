@@ -1,22 +1,40 @@
 package com.example.expensetracker;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+
+import com.example.expensetracker.domain.Expense;
+import com.example.expensetracker.domain.Trip;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.concurrent.ExecutionException;
 
 public class AddTrip extends AppCompatActivity {
 
-    private EditText etName, etDescription, etMembers, etStartDate, etEndDate;
+    private EditText etName;
+    private EditText etDescription;
+    private EditText etStartDate;
+    private EditText etEndDate;
+    private Button addTrip;
+
+    private String tripNameString;
+    private String tripDestinationString;
+    private String tripStartDateString;
+    private String tripEndDateString;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,23 +45,20 @@ public class AddTrip extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         etName = (EditText) findViewById(R.id.tripName);
-        etDescription = (EditText) findViewById(R.id.tripDescription);
-        etMembers = (EditText) findViewById(R.id.noOfMembers);
+        etDescription = (EditText) findViewById(R.id.tripDestination);
         etStartDate = (EditText) findViewById(R.id.tripStartDate);
         etEndDate = (EditText) findViewById(R.id.tripEndDate);
+        addTrip = (Button) findViewById(R.id.addBtn);
 
         // set listeners
         etName.addTextChangedListener(mTextWatcher);
         etDescription.addTextChangedListener(mTextWatcher);
-        etMembers.addTextChangedListener(mTextWatcher);
         etStartDate.addTextChangedListener(mTextWatcher);
         etEndDate.addTextChangedListener(mTextWatcher);
 
         // run once to disable if empty
         checkFieldsForEmptyValues();
-
-
-        addButtonIntent();
+        addTripButtonPressed();
     }
 
     //  create a textWatcher member
@@ -66,33 +81,66 @@ public class AddTrip extends AppCompatActivity {
     void checkFieldsForEmptyValues() {
         Button b = (Button) findViewById(R.id.addBtn);
 
-        String s1 = etName.getText().toString().trim();
-        String s2 = etDescription.getText().toString().trim();
-        String s3 = etMembers.getText().toString().trim();
-        String s4 = etStartDate.getText().toString().trim();
-        String s5 = etEndDate.getText().toString().trim();
+        tripNameString = etName.getText().toString().trim();
+        tripDestinationString = etDescription.getText().toString().trim();
+        tripStartDateString = etStartDate.getText().toString().trim();
+        tripEndDateString = etEndDate.getText().toString().trim();
 
-        if (s1.equals("") || s2.equals("") || s3.equals("") || s4.equals("") || s5.equals("")) {
+        if (tripNameString.equals("") || tripDestinationString.equals("") || tripStartDateString.equals("") || tripEndDateString.equals("")) {
             b.setEnabled(false);
         } else {
             b.setEnabled(true);
         }
     }
 
-    private void addButtonIntent() {
-        Button addTrip = (Button) findViewById(R.id.addBtn);
+    private void addTripButtonPressed() {
         addTrip.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                final String tripName = ((EditText) findViewById(R.id.tripName)).getText().toString();
+                // Save the trip into DB
+                Trip tripToInsert =
+                        new Trip(null, tripNameString, tripDestinationString, tripStartDateString, tripEndDateString, null, null, null);
+                Integer insertedTripId = -1;
+                try {
+                    insertedTripId = new AddTripReqTask().execute(tripToInsert).get();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
 
                 Intent myIntent = new Intent(AddTrip.this, ViewTrip.class);
-                myIntent.putExtra("tripName", tripName);
+                myIntent.putExtra("tripId", insertedTripId);
                 myIntent.putExtra("fromActivity", "AddTrip");
+
                 startActivity(myIntent);
             }
         });
+    }
+
+    private class AddTripReqTask extends AsyncTask<Trip, Void, Integer> {
+
+        @Override
+        protected Integer doInBackground(Trip... params) {
+
+            Trip tripToAdd = params[0];
+            try {
+                String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/trip";
+                RestTemplate restTemplate = new RestTemplate();
+                restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+                ResponseEntity<Trip> tripResponse = restTemplate.postForEntity(apiUrl, tripToAdd, Trip.class);
+                return tripResponse.getBody().getId();
+            } catch (Exception e) {
+                Log.e("ERROR-ADD-TRIP", e.getMessage());
+            }
+            return -1;
+        }
+
+        @Override
+        protected void onPostExecute(Integer idInsertedTrip) {
+
+        }
     }
 
 }
