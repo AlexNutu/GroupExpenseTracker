@@ -1,6 +1,9 @@
 package com.example.expensetracker;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -9,25 +12,54 @@ import androidx.appcompat.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.example.expensetracker.helper.DatabaseHelper;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import static android.os.Build.VERSION_CODES.N;
 
 public class MainActivity extends AppCompatActivity {
 
+    DatabaseHelper db;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        db = new DatabaseHelper(getApplicationContext());
+        db.getReadableDatabase();
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         addTrips();
         addTripButton();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        ConnectivityManager cm = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+
+        //if there is a network
+        if (activeNetwork != null) {
+            //if connected to wifi or mobile data plan
+            if (activeNetwork.getType() == ConnectivityManager.TYPE_WIFI || activeNetwork.getType() == ConnectivityManager.TYPE_MOBILE) {
+                TextView myAwesomeTextView = (TextView)findViewById(R.id.networkStateText);
+                myAwesomeTextView.setText("You are in Online Mode");
+            }
+            else
+            {
+                TextView myAwesomeTextView = (TextView)findViewById(R.id.networkStateText);
+                myAwesomeTextView.setText("You are in Offline Mode");
+            }
+        }
+        else{
+                TextView myAwesomeTextView = (TextView)findViewById(R.id.networkStateText);
+                myAwesomeTextView.setText("You are in Offline Mode");
+        }
     }
 
     private void addTripButton() {

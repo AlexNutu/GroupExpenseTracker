@@ -29,7 +29,7 @@
         android:id="@+id/tvHome"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="564dp"
+        android:layout_marginBottom="568dp"
         android:text="Trips"
         android:textAllCaps="false"
         android:textSize="24sp"
@@ -77,6 +77,18 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/appBarLayout"
         app:layout_constraintVertical_bias="0.072" />
+
+    <TextView
+        android:id="@+id/networkStateText"
+        android:layout_width="371dp"
+        android:layout_height="21dp"
+        android:text="TextView"
+        app:layout_constraintBottom_toTopOf="@+id/tripList"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.6"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.945" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
