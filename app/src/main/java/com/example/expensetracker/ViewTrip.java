@@ -95,6 +95,8 @@ public class ViewTrip extends AppCompatActivity implements ExpenseDialogListener
         ImageButton genReportBtn = (ImageButton) findViewById(R.id.genReportBtn);
         ImageButton toDoListBtn = (ImageButton) findViewById(R.id.toDoListBtn);
 
+        final Intent fromIntent = getIntent();
+
         viewMembersBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -107,8 +109,8 @@ public class ViewTrip extends AppCompatActivity implements ExpenseDialogListener
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(ViewTrip.this, ViewReport.class);
-                if (getIntent() != null) {
-                    intent.putExtra("tripId", getIntent().getIntExtra("tripId", 0));
+                if (fromIntent != null) {
+                    intent.putExtra("tripId", fromIntent.getIntExtra("tripId", 0));
                 }
                 startActivity(intent);
             }
@@ -118,6 +120,9 @@ public class ViewTrip extends AppCompatActivity implements ExpenseDialogListener
             @Override
             public void onClick(View v) {
                 Intent toDoListIntent = new Intent(ViewTrip.this, ToDoList.class);
+                if (fromIntent != null) {
+                    toDoListIntent.putExtra("tripId", fromIntent.getIntExtra("tripId", 0));
+                }
                 startActivity(toDoListIntent);
             }
         });
@@ -187,7 +192,7 @@ public class ViewTrip extends AppCompatActivity implements ExpenseDialogListener
 
     @Override
     public void addExpenseToDB(String productName, String cost, String selectedCurrency, String expenseType) {
-        Expense e = new Expense(expenseType, productName, Float.valueOf(cost), selectedCurrency, new User(1), new Trip(1, "Nume", "Destinatie", null, null, null, null, null));
+        Expense e = new Expense(expenseType, productName, Float.valueOf(cost), selectedCurrency, new User(1L, "", "", ""), new Trip(1, "Nume", "Destinatie", null, null, null, null, null));
         new AddExpenseReqTask().execute(e);
     }
 
