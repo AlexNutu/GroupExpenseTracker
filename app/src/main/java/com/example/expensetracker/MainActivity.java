@@ -29,8 +29,6 @@ import static android.os.Build.VERSION_CODES.N;
 
 public class MainActivity extends AppCompatActivity {
 
-    DatabaseHelper db;
-
     // list of trips
     private ListView lv;
 
@@ -41,6 +39,9 @@ public class MainActivity extends AppCompatActivity {
 
     // arraylist for listview
     ArrayList<HashMap<String, String>> tripList;
+
+    DatabaseHelper db;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
