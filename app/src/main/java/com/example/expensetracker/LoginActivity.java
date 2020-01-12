@@ -53,7 +53,10 @@ public class LoginActivity extends AppCompatActivity {
         testRest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new HttpReqTask().execute();
+//                new HttpReqTask().execute();
+
+                Intent intent = new Intent(LoginActivity.this, ViewReport.class);
+                startActivity(intent);
             }
         });
 

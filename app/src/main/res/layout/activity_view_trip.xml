@@ -82,7 +82,7 @@
             app:fab_colorPressed="@color/white_pressed"
             app:fab_icon="@drawable/ic_add_green"
             app:fab_size="mini"
-            app:fab_title="Individual Expense" />
+            app:fab_title="Simple Expense" />
 
         <com.getbase.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab_action2"
@@ -93,6 +93,16 @@
             app:fab_icon="@drawable/ic_add_green"
             app:fab_size="mini"
             app:fab_title="Group Expense" />
+
+        <com.getbase.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab_action3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:fab_colorNormal="@color/white"
+            app:fab_colorPressed="@color/white_pressed"
+            app:fab_icon="@drawable/ic_add_green"
+            app:fab_size="mini"
+            app:fab_title="Collect Expense" />
 
     </com.getbase.floatingactionbutton.FloatingActionsMenu>
 
@@ -105,5 +115,78 @@
         app:layout_constraintBottom_toTopOf="@+id/tvViewTrip"
         app:layout_constraintEnd_toStartOf="@+id/viewMembersBtn"
         app:layout_constraintStart_toEndOf="@+id/genReportBtn" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="36dp"
+        android:text="Trip Destination"
+        android:textStyle="bold"
+        android:textSize="20dp"
+        app:layout_constraintBottom_toTopOf="@+id/tripDestinationTV"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.147"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/tripDestinationTV"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="56dp"
+        android:text="TextView"
+        app:layout_constraintBottom_toTopOf="@+id/textView2"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.147"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="36dp"
+        android:text="Trip Start Date"
+        android:textStyle="bold"
+        android:textSize="20dp"
+        app:layout_constraintBottom_toTopOf="@+id/tripStartDateTV"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.147"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/tripStartDateTV"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="56dp"
+        android:text="TextView"
+        app:layout_constraintBottom_toTopOf="@+id/textView3"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.147"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="36dp"
+        android:text="Trip End Date"
+        android:textStyle="bold"
+        android:textSize="20dp"
+        app:layout_constraintBottom_toTopOf="@+id/tripEndDateTV"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.147"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/tripEndDateTV"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="172dp"
+        android:text="TextView"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.147"
+        app:layout_constraintStart_toStartOf="parent" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

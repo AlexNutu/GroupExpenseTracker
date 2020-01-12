@@ -1,4 +1,25 @@
 <resources>
     <string name="app_name">ExpenseTracker</string>
     <string name="action_settings">Settings</string>
+
+    <string-array name="groupExpenseTypes">
+        <item>Initial Group Expense</item>
+        <item>Group Expense</item>
+    </string-array>
+
+    <string-array name="collectExpenseTypes">
+        <item>Initial Collect Expense</item>
+        <item>Collect Expense</item>
+        <item>Final Collect Expense</item>
+    </string-array>
+
+    <string-array name="currencies">
+        <item>RON</item>
+        <item>EUR</item>
+        <item>USD</item>
+    </string-array>
+    <string name="title_activity_view_report">ViewReport</string>
+    <string name="tab_text_1">UNPERFORMED</string>
+    <string name="tab_text_2">REPORT</string>
+
 </resources>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="20dp">
+
+    <EditText
+        android:id="@+id/productET"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Product name" />
+
+    <EditText
+        android:id="@+id/sumET"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/productET"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
+        android:hint="Cost"
+        android:inputType="numberDecimal" />
+
+    <Spinner
+        android:id="@+id/currencySpinner"
+        android:layout_width="381dp"
+        android:layout_height="41dp"
+        android:layout_below="@id/sumET"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true" />
+
+
+</RelativeLayout>

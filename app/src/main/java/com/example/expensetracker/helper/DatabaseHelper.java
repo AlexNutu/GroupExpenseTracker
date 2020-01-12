@@ -1,6 +1,7 @@
 package com.example.expensetracker.helper;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
@@ -186,5 +187,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
         Date date = new Date();
         return dateFormat.format(date);
+    }
+
+    public Cursor getUnsyncedTripsToInsert() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String sql = "SELECT * FROM " + TABLE_TRIP + " WHERE " + KEY_STATUS + " = 0;";
+        Cursor c = db.rawQuery(sql, null);
+        return c;
     }
 }
