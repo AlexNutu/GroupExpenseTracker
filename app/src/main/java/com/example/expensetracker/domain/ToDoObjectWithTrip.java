@@ -2,6 +2,7 @@ package com.example.expensetracker.domain;
 
 public class ToDoObjectWithTrip {
 
+    private Boolean approved;
     private String message;
     private User user;
     private Trip trip;
@@ -9,10 +10,19 @@ public class ToDoObjectWithTrip {
     public ToDoObjectWithTrip() {
     }
 
-    public ToDoObjectWithTrip(String message, User user, Trip trip) {
+    public ToDoObjectWithTrip(Boolean approved, String message, User user, Trip trip) {
+        this.approved = approved;
         this.message = message;
         this.user = user;
         this.trip = trip;
+    }
+
+    public Boolean getApproved() {
+        return approved;
+    }
+
+    public void setApproved(Boolean approved) {
+        this.approved = approved;
     }
 
     public String getMessage() {

@@ -3,6 +3,7 @@ package com.example.expensetracker.domain;
 public class ToDoObject {
 
     private long idNote;
+    private Boolean approved;
     private String message;
     private User user;
     private String createDate;
@@ -10,8 +11,9 @@ public class ToDoObject {
     public ToDoObject() {
     }
 
-    public ToDoObject(long idNote, String message, User user, String createDate) {
+    public ToDoObject(long idNote, Boolean approved, String message, User user, String createDate) {
         this.idNote = idNote;
+        this.approved = approved;
         this.message = message;
         this.user = user;
         this.createDate = createDate;
@@ -23,6 +25,14 @@ public class ToDoObject {
 
     public void setIdNote(long idNote) {
         this.idNote = idNote;
+    }
+
+    public Boolean getApproved() {
+        return approved;
+    }
+
+    public void setApproved(Boolean approved) {
+        this.approved = approved;
     }
 
     public String getMessage() {

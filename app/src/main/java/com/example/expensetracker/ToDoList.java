@@ -65,7 +65,7 @@ public class ToDoList extends AppCompatActivity {
         ArrayList<ToDoObject> toDoObjectList = new ArrayList<>();
         for (int i = 0; i < toDoFromDB.length; i++) {
             ToDoObject t = toDoFromDB[i];
-            toDoObjectList.add(new ToDoObject(t.getIdNote(), t.getMessage(), t.getUser(), t.getCreateDate()));
+            toDoObjectList.add(new ToDoObject(t.getIdNote(), t.getApproved(), t.getMessage(), t.getUser(), t.getCreateDate()));
         }
 
         // Adding elements into List View

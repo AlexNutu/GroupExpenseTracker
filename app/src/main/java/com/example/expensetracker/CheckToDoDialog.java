@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -29,15 +30,17 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 
-public class AddToDoDialog extends AppCompatDialogFragment {
+public class CheckToDoDialog extends AppCompatDialogFragment {
 
-    private EditText toDoET;
+    private TextView toDoQuestionTV;
     private Integer tripId;
+    private ToDoObject toUpdateToDo;
     private Context activityContext;
 
 
-    public AddToDoDialog(Integer tripIdParam) {
+    public CheckToDoDialog(ToDoObject toDoObject, Integer tripIdParam) {
         this.tripId = tripIdParam;
+        this.toUpdateToDo = toDoObject;
     }
 
     @Override
@@ -53,58 +56,53 @@ public class AddToDoDialog extends AppCompatDialogFragment {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
         LayoutInflater inflater = getActivity().getLayoutInflater();
-        View view = inflater.inflate(R.layout.add_todo_dialog, null);
+        View view = inflater.inflate(R.layout.delete_todo_dialog, null);
 
         builder.setView(view)
-                .setTitle("Add To Do")
+                .setTitle("Update To Do")
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                     }
                 })
-                .setPositiveButton("Add", new DialogInterface.OnClickListener() {
+                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        String toDoText = toDoET.getText().toString();
-
-                        //TODO: to retrieve the current user
-                        User currentUser = new User();
-                        currentUser.setId(1L);
-
-                        Trip currentTrip = new Trip();
-                        currentTrip.setId(tripId);
-
-                        ToDoObjectWithTrip toDoObjectWithTrip = new ToDoObjectWithTrip(false, toDoText, currentUser, currentTrip);
-                        new AddToDoReqTask().execute(toDoObjectWithTrip);
+                        new UpdateToDoReqTask().execute(toUpdateToDo);
                     }
                 });
 
-        toDoET = view.findViewById(R.id.toDoET);
+        toDoQuestionTV = view.findViewById(R.id.toDoQuestionTV);
+        if (toUpdateToDo.getApproved()) {
+            toDoQuestionTV.setText("Check this item?");
+        } else {
+            toDoQuestionTV.setText("Uncheck this item?");
+        }
 
         return builder.create();
     }
 
-    private class AddToDoReqTask extends AsyncTask<ToDoObjectWithTrip, Void, Void> {
+    private class UpdateToDoReqTask extends AsyncTask<ToDoObject, Void, Void> {
 
         @Override
-        protected Void doInBackground(ToDoObjectWithTrip... params) {
+        protected Void doInBackground(ToDoObject... params) {
 
-            ToDoObjectWithTrip toDoParam = params[0];
+            ToDoObject toDoParam = params[0];
+            long noteId = toDoParam.getIdNote();
             try {
-                String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/note";
+                String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/note/" + noteId;
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                restTemplate.postForEntity(apiUrl, toDoParam, ToDoObjectWithTrip.class);
-
+                restTemplate.put(apiUrl, toDoParam, ToDoObject.class);
             } catch (Exception e) {
-                Log.e("ERROR-ADD-TODO", e.getMessage());
+                Log.e("ERROR-UPDATE-TODO", e.getMessage());
             }
             return null;
         }
 
         @Override
         protected void onPostExecute(Void voids) {
-            Toast.makeText(activityContext, "To Do added successfully", Toast.LENGTH_SHORT).show();
+            Toast.makeText(activityContext, "To Do was updated!", Toast.LENGTH_SHORT).show();
             // Retrieve To do's from DB and attach them to the list view
             new GetToDosReqTask().execute(tripId);
         }
@@ -153,5 +151,3 @@ public class AddToDoDialog extends AppCompatDialogFragment {
     }
 
 }
-
-
