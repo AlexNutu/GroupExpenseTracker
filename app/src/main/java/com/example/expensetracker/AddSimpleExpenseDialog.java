@@ -53,7 +53,7 @@ public class AddSimpleExpenseDialog extends AppCompatDialogFragment {
                     public void onClick(DialogInterface dialog, int which) {
                         String productName = productNameET.getText().toString();
                         String cost = costET.getText().toString();
-                        expenseDialogListener.addExpenseToDB(productName, cost, selectedCurrency, expenseType);
+                        expenseDialogListener.addExpenseToDB(productName, cost, selectedCurrency, "0.0", expenseType);
                     }
                 });
 

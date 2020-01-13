@@ -22,6 +22,7 @@ public class AddComplexExpenseDialog extends AppCompatDialogFragment {
 
     private EditText productNameET;
     private EditText costET;
+    private EditText percentageET;
     private Spinner currencySpinner;
     private Spinner expenseTypeSpinner;
 
@@ -55,12 +56,14 @@ public class AddComplexExpenseDialog extends AppCompatDialogFragment {
                     public void onClick(DialogInterface dialog, int which) {
                         String productName = productNameET.getText().toString();
                         String cost = costET.getText().toString();
-                        expenseDialogListener.addExpenseToDB(productName, cost, selectedCurrency, selectedExpenseType);
+                        String percentage = percentageET.getText().toString().equals("") ? "0.0" : percentageET.getText().toString();
+                        expenseDialogListener.addExpenseToDB(productName, cost, selectedCurrency, percentage, selectedExpenseType);
                     }
                 });
 
         productNameET = view.findViewById(R.id.productET);
         costET = view.findViewById(R.id.sumET);
+        percentageET = view.findViewById(R.id.expensePercentET);
 
         currencySpinner = view.findViewById(R.id.currencySpinner);
         ArrayAdapter<CharSequence> currencyAdapter = ArrayAdapter.createFromResource(this.getContext(),
@@ -90,6 +93,7 @@ public class AddComplexExpenseDialog extends AppCompatDialogFragment {
         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
             selectedCurrency = parent.getItemAtPosition(position).toString();
         }
+
         @Override
         public void onNothingSelected(AdapterView<?> parent) {
         }
@@ -99,7 +103,13 @@ public class AddComplexExpenseDialog extends AppCompatDialogFragment {
         @Override
         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
             selectedExpenseType = parent.getItemAtPosition(position).toString();
+            if (selectedExpenseType.equals("Initial Collect Expense")) {
+                percentageET.setVisibility(View.VISIBLE);
+            } else {
+                percentageET.setVisibility(View.GONE);
+            }
         }
+
         @Override
         public void onNothingSelected(AdapterView<?> parent) {
         }

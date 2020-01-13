@@ -6,17 +6,19 @@ public class Expense {
     private String product;
     private float sum;
     private String currency;
+    private float percent;
     private User user;
     private Trip trip;
 
     public Expense() {
     }
 
-    public Expense(String expensiveType, String product, float sum, String currency, User user, Trip trip) {
+    public Expense(String expensiveType, String product, float sum, String currency, float percent, User user, Trip trip) {
         this.expensiveType = expensiveType;
         this.product = product;
         this.sum = sum;
         this.currency = currency;
+        this.percent = percent;
         this.user = user;
         this.trip = trip;
     }
@@ -51,6 +53,14 @@ public class Expense {
 
     public void setCurrency(String currency) {
         this.currency = currency;
+    }
+
+    public float getPercent() {
+        return percent;
+    }
+
+    public void setPercent(float percent) {
+        this.percent = percent;
     }
 
     public User getUser() {
