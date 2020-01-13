@@ -1,45 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:weightSum="100"
     android:paddingBottom="15dp"
-    >
-
-    <TextView
-        android:id="@+id/messageTV"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="TextView"
-        android:layout_marginBottom="15dp"
-        android:textSize="20dp"
-        />
+    android:weightSum="100">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="horizontal"
-        >
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/messageTV"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="15dp"
+            android:layout_weight="40"
+            android:text="TextView"
+            android:textSize="20dp" />
+
+        <ImageButton
+            android:id="@+id/deleteToDoBtn"
+            android:layout_width="90dp"
+            android:layout_height="30dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginBottom="15dp"
+            android:layout_weight="60"
+            android:background="@drawable/ic_delete_todo"
+            android:gravity="right" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
 
         <TextView
             android:id="@+id/nameToDoTV"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
             android:layout_weight="40"
-            android:text="TextView"
             android:gravity="left"
-            android:layout_marginLeft="10dp"/>
+            android:text="TextView" />
 
         <TextView
             android:id="@+id/createdDateTV"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="60"
-            android:text="TextView"
-            android:gravity="right"
             android:layout_marginRight="10dp"
-            />
+            android:layout_weight="60"
+            android:gravity="right"
+            android:text="TextView" />
 
     </LinearLayout>
 

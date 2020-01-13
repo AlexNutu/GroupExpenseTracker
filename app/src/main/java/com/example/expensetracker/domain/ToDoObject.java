@@ -2,6 +2,7 @@ package com.example.expensetracker.domain;
 
 public class ToDoObject {
 
+    private long idNote;
     private String message;
     private User user;
     private String createDate;
@@ -9,10 +10,19 @@ public class ToDoObject {
     public ToDoObject() {
     }
 
-    public ToDoObject(String message, User user, String createDate) {
+    public ToDoObject(long idNote, String message, User user, String createDate) {
+        this.idNote = idNote;
         this.message = message;
         this.user = user;
         this.createDate = createDate;
+    }
+
+    public long getIdNote() {
+        return idNote;
+    }
+
+    public void setIdNote(long idNote) {
+        this.idNote = idNote;
     }
 
     public String getMessage() {

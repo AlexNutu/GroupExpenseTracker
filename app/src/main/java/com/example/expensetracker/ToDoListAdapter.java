@@ -6,10 +6,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.fragment.app.FragmentActivity;
 
 import com.example.expensetracker.domain.ToDoObject;
 
@@ -20,17 +22,20 @@ public class ToDoListAdapter extends ArrayAdapter<ToDoObject> {
     private static final String TAG = "ToDoListAdapter";
     private Context mContext;
     private int mResource;
+    private Integer idTrip;
 
-    public ToDoListAdapter(@NonNull Context context, int resource, @NonNull ArrayList<ToDoObject> objects) {
+    public ToDoListAdapter(@NonNull Context context, int resource, @NonNull ArrayList<ToDoObject> objects, Integer idTripParam) {
         super(context, resource, objects);
         mContext = context;
         mResource = resource;
+        this.idTrip = idTripParam;
     }
 
     @SuppressLint("ViewHolder")
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+        final Long idNote = getItem(position).getIdNote();
         String message = getItem(position).getMessage();
         String name = getItem(position).getUser().getFirstName() + " " + getItem(position).getUser().getLastName();
         String createdDate = getItem(position).getCreateDate();
@@ -41,11 +46,23 @@ public class ToDoListAdapter extends ArrayAdapter<ToDoObject> {
         TextView messageTV = convertView.findViewById(R.id.messageTV);
         TextView nameTV = convertView.findViewById(R.id.nameToDoTV);
         TextView createdDateTV = convertView.findViewById(R.id.createdDateTV);
+        ImageButton deleteToDoBtn = convertView.findViewById(R.id.deleteToDoBtn);
 
         messageTV.setText(message);
         nameTV.setText(name);
         createdDateTV.setText(createdDate);
+        deleteToDoBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openDeleteToDoDialog(idNote);
+            }
+        });
 
         return convertView;
+    }
+
+    public void openDeleteToDoDialog(Long idNote) {
+        DeleteToDoDialog deleteToDoDialog = new DeleteToDoDialog(idNote, idTrip);
+        deleteToDoDialog.show(((FragmentActivity) mContext).getSupportFragmentManager(), "add todo dialog");
     }
 }

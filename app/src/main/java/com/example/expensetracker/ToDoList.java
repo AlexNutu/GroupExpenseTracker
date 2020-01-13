@@ -11,7 +11,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import com.example.expensetracker.domain.ToDoObject;
-import com.example.expensetracker.domain.User;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.springframework.http.ResponseEntity;
@@ -22,6 +21,8 @@ import java.util.ArrayList;
 
 public class ToDoList extends AppCompatActivity {
 
+    private Integer tripId = -1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -29,21 +30,20 @@ public class ToDoList extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        Intent currentIntent = getIntent();
+        if (currentIntent != null) {
+            tripId = currentIntent.getIntExtra("tripId", -1);
+        }
+
         setActions();
     }
 
     private void setActions() {
-        Intent currentIntent = getIntent();
-        Integer tripIdParam = -1;
-        if (currentIntent != null) {
-            tripIdParam = currentIntent.getIntExtra("tripId", -1);
-        }
-
         // Retrieve To do's from DB and attach them to the list view
-        new GetToDosReqTask().execute(tripIdParam);
+        new GetToDosReqTask().execute(tripId);
 
         FloatingActionButton addToDo = (FloatingActionButton) findViewById(R.id.floatingAddToDoButton);
-        final Integer finalTripIdParam = tripIdParam;
+        final Integer finalTripIdParam = tripId;
         addToDo.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -65,20 +65,21 @@ public class ToDoList extends AppCompatActivity {
         ArrayList<ToDoObject> toDoObjectList = new ArrayList<>();
         for (int i = 0; i < toDoFromDB.length; i++) {
             ToDoObject t = toDoFromDB[i];
-            toDoObjectList.add(new ToDoObject(t.getMessage(), t.getUser(), t.getCreateDate()));
+            toDoObjectList.add(new ToDoObject(t.getIdNote(), t.getMessage(), t.getUser(), t.getCreateDate()));
         }
 
         // Adding elements into List View
-        ToDoListAdapter toDoListAdapter = new ToDoListAdapter(this, R.layout.adapter_todo_view_layout, toDoObjectList);
+        ToDoListAdapter toDoListAdapter = new ToDoListAdapter(this, R.layout.adapter_todo_view_layout, toDoObjectList, tripId);
         mListView.setAdapter(toDoListAdapter);
     }
 
     private class GetToDosReqTask extends AsyncTask<Integer, Void, ToDoObject[]> {
 
         @Override
-        protected ToDoObject[] doInBackground(Integer... tripIdParam) {
+        protected ToDoObject[] doInBackground(Integer... params) {
 
             ToDoObject[] toDoFromDB = {};
+            int tripIdParam = params[0];
             try {
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/note?search=trip:" + tripIdParam;
                 RestTemplate restTemplate = new RestTemplate();
