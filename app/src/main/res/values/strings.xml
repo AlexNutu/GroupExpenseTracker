@@ -20,6 +20,6 @@
     </string-array>
     <string name="title_activity_view_report">ViewReport</string>
     <string name="tab_text_1">UNPERFORMED</string>
-    <string name="tab_text_2">REPORT</string>
+    <string name="tab_text_2">HISTORY</string>
 
 </resources>

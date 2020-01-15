@@ -2,10 +2,7 @@ package com.example.expensetracker;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.PorterDuff;
-import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,8 +15,6 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 
 import com.example.expensetracker.domain.ToDoObject;
-
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 

@@ -72,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
         inputSearch = (EditText) findViewById(R.id.searchET);
 
         // adding item to list view
-        adapter = new ArrayAdapter<String>(this, R.layout.list_item, R.id.trip_name, tripStrings);
+        adapter = new ArrayAdapter<String>(this, R.layout.trip_list_item, R.id.trip_name, tripStrings);
         lv.setAdapter(adapter);
 
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
