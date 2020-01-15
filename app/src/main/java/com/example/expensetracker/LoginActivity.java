@@ -31,7 +31,7 @@ public class LoginActivity extends AppCompatActivity {
     private void setActions() {
         Button addTrip = (Button) findViewById(R.id.loginBtn);
         TextView signUp = (TextView) findViewById(R.id.goToRegisterTV);
-        Button testRest = (Button) findViewById(R.id.testRestBtn);
+//        Button testRest = (Button) findViewById(R.id.testRestBtn);
 
         addTrip.setOnClickListener(new View.OnClickListener() {
 
@@ -50,15 +50,15 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        testRest.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-//                new HttpReqTask().execute();
-
-                Intent intent = new Intent(LoginActivity.this, ViewReport.class);
-                startActivity(intent);
-            }
-        });
+//        testRest.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+////                new HttpReqTask().execute();
+//
+//                Intent intent = new Intent(LoginActivity.this, ViewReport.class);
+//                startActivity(intent);
+//            }
+//        });
 
     }
 

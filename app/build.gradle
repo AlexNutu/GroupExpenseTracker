@@ -39,4 +39,10 @@ dependencies {
     implementation 'com.getbase:floatingactionbutton:1.10.1'
     implementation 'org.springframework.android:spring-android-rest-template:1.0.1.RELEASE'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.3.2'
+
+    // Added for CircleImage
+    implementation 'de.hdodenhof:circleimageview:3.0.1'
+
+    // Added for Searchable Spinner
+    implementation 'com.github.MdFarhanRaja:SearchableSpinner:2.0'
 }

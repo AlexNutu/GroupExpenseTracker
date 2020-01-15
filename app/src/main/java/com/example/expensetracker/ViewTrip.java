@@ -101,6 +101,9 @@ public class ViewTrip extends AppCompatActivity implements ExpenseDialogListener
             @Override
             public void onClick(View v) {
                 Intent membersIntent = new Intent(ViewTrip.this, ViewMembers.class);
+                if (fromIntent != null) {
+                    membersIntent.putExtra("tripId", fromIntent.getIntExtra("tripId", 0));
+                }
                 startActivity(membersIntent);
             }
         });

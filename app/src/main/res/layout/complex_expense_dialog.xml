@@ -20,11 +20,22 @@
         android:hint="Cost"
         android:inputType="numberDecimal" />
 
+    <EditText
+        android:id="@+id/expensePercentET"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/sumET"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
+        android:hint="Percent"
+        android:visibility="visible"
+        android:inputType="numberDecimal" />
+
     <Spinner
         android:id="@+id/currencySpinner"
         android:layout_width="match_parent"
         android:layout_height="41dp"
-        android:layout_below="@id/sumET"
+        android:layout_below="@id/expensePercentET"
         android:layout_alignParentStart="true"
         android:layout_alignParentLeft="true" />
 
@@ -35,16 +46,5 @@
         android:layout_below="@id/currencySpinner"
         android:layout_alignParentStart="true"
         android:layout_alignParentLeft="true" />
-
-    <EditText
-        android:id="@+id/expensePercentET"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/expenseTypeSpinner"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentLeft="true"
-        android:hint="Percent"
-        android:visibility="gone"
-        android:inputType="numberDecimal" />
 
 </RelativeLayout>
