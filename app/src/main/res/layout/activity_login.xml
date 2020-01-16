@@ -66,40 +66,27 @@
         app:layout_constraintTop_toBottomOf="@+id/emailLoginET"
         app:layout_constraintVertical_bias="0.0" />
 
+
     <Button
         android:id="@+id/loginBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="76dp"
+        android:layout_marginBottom="60dp"
         android:text="Log in"
         app:layout_constraintBottom_toTopOf="@+id/goToRegisterTV"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent" />
 
-
-
     <TextView
         android:id="@+id/goToRegisterTV"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="100dp"
+        android:layout_marginBottom="124dp"
         android:text="Not registered? Sign up here"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
-
-<!--    <Button-->
-<!--        android:id="@+id/testRestBtn"-->
-<!--        android:layout_width="117dp"-->
-<!--        android:layout_height="34dp"-->
-<!--        android:layout_marginTop="23dp"-->
-<!--        android:text="Test rest"-->
-<!--        android:textSize="12sp"-->
-<!--        app:layout_constraintEnd_toEndOf="parent"-->
-<!--        app:layout_constraintStart_toStartOf="parent"-->
-<!--        app:layout_constraintTop_toBottomOf="@+id/loginBtn"-->
-<!--        />-->
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

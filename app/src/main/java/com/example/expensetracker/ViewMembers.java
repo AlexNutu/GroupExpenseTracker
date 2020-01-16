@@ -187,7 +187,7 @@ public class ViewMembers extends AppCompatActivity {
         ArrayList<User> membersObjectList = new ArrayList<>();
         for (int i = 0; i < membersList.length; i++) {
             User u = membersList[i];
-            membersObjectList.add(new User(u.getId(), u.getFirstName(), u.getLastName(), u.getEmail()));
+            membersObjectList.add(new User(u.getId(), u.getFirstName(), u.getLastName(), u.getEmail(), u.getPassword(), ""));
         }
 
         MembersListAdapter membersListAdapter = new MembersListAdapter(this, R.layout.member_item, membersObjectList);

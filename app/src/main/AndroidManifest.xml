@@ -22,7 +22,6 @@
         <activity android:name=".ViewTrip" />
         <activity android:name=".ExpenseChart" />
         <activity android:name=".AddExpense" />
-        <activity android:name=".AddMember" />
         <activity android:name=".AddTrip" />
         <activity android:name=".RegisterActivity" />
         <activity
