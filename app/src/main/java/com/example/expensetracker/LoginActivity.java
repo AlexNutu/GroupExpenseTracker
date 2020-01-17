@@ -68,6 +68,7 @@ public class LoginActivity extends AppCompatActivity {
                         myIntent.putExtra("currentUserObject", resultedUser);
                         myIntent.putExtra("fromActivity", "LoginActivity");
                         startActivity(myIntent);
+                        finish();
                     } else {
                         // Display error from BE
                         Toast toast = Toast.makeText(LoginActivity.this, resultedUser.getErrorMessage(), Toast.LENGTH_SHORT);

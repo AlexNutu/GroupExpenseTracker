@@ -114,9 +114,11 @@ public class AddTrip extends AppCompatActivity {
 
                 Intent myIntent = new Intent(AddTrip.this, ViewTrip.class);
                 myIntent.putExtra("tripId", insertedTripId);
+                myIntent.putExtra("currentUserObject", currentUserObject);
                 myIntent.putExtra("fromActivity", this.getClass().getSimpleName());
 
                 startActivity(myIntent);
+                finish();
             }
         });
     }

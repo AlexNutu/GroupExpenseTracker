@@ -48,6 +48,14 @@ public class ViewTrip extends AppCompatActivity implements ExpenseDialogListener
         configureBtnActions();
     }
 
+    @Override
+    public void onBackPressed() {
+        Intent myIntent = new Intent(this, MainActivity.class);
+        myIntent.putExtra("currentUserObject", this.currentUserObject);
+        myIntent.putExtra("fromActivity", "ViewTrip");
+        startActivity(myIntent);
+    }
+
     private void init() {
 
         Intent currentIntent = getIntent();
