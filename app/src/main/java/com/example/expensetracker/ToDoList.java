@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import com.example.expensetracker.domain.ToDoObject;
+import com.example.expensetracker.domain.User;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,8 @@ import java.util.ArrayList;
 public class ToDoList extends AppCompatActivity {
 
     private Integer tripId = -1;
+    private User currentUserObject;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +36,7 @@ public class ToDoList extends AppCompatActivity {
         Intent currentIntent = getIntent();
         if (currentIntent != null) {
             tripId = currentIntent.getIntExtra("tripId", -1);
+            currentUserObject = (User) currentIntent.getSerializableExtra("currentUserObject");
         }
 
         setActions();
@@ -54,7 +58,7 @@ public class ToDoList extends AppCompatActivity {
     }
 
     private void openAddToDoDialog(Integer tripIdParam) {
-        AddToDoDialog addToDoDialog = new AddToDoDialog(tripIdParam);
+        AddToDoDialog addToDoDialog = new AddToDoDialog(tripIdParam, currentUserObject);
         addToDoDialog.show(getSupportFragmentManager(), "add todo dialog");
     }
 

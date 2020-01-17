@@ -73,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent myIntent = new Intent(MainActivity.this, AddTrip.class);
+                myIntent.putExtra("currentUserObject", currentUserObject);
                 startActivity(myIntent);
             }
         });
@@ -95,6 +96,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent myIntent = new Intent(MainActivity.this, ViewTrip.class);
+                myIntent.putExtra("currentUserObject", currentUserObject);
                 Integer tripIdToSend = -1;
                 for (int i = 0; i < tripsFromDB.length; i++) {
                     if (tripsFromDB[i].getName().equals(adapter.getItem(position))) {

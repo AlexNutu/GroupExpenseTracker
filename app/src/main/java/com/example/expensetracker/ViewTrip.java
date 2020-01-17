@@ -31,6 +31,8 @@ public class ViewTrip extends AppCompatActivity implements ExpenseDialogListener
     private TextView tripStartDateTV;
     private TextView tripEndDateTV;
 
+    private User currentUserObject;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,9 +50,9 @@ public class ViewTrip extends AppCompatActivity implements ExpenseDialogListener
 
     private void init() {
 
-        // Attaching text to the title
         Intent currentIntent = getIntent();
         if (currentIntent != null) {
+            currentUserObject = (User) currentIntent.getSerializableExtra("currentUserObject");
             String fromActivity = currentIntent.getStringExtra("fromActivity");
             if (fromActivity != null && fromActivity.equals("AddTrip")) {
                 // We are here from AddTripActivity
@@ -124,6 +126,7 @@ public class ViewTrip extends AppCompatActivity implements ExpenseDialogListener
             public void onClick(View v) {
                 Intent toDoListIntent = new Intent(ViewTrip.this, ToDoList.class);
                 if (fromIntent != null) {
+                    toDoListIntent.putExtra("currentUserObject", currentUserObject);
                     toDoListIntent.putExtra("tripId", fromIntent.getIntExtra("tripId", 0));
                 }
                 startActivity(toDoListIntent);
@@ -195,7 +198,7 @@ public class ViewTrip extends AppCompatActivity implements ExpenseDialogListener
 
     @Override
     public void addExpenseToDB(String productName, String cost, String selectedCurrency, String percentage, String expenseType) {
-        Expense e = new Expense(expenseType, productName, Float.valueOf(cost), selectedCurrency, Float.valueOf(percentage), new User(1L, "", "", "", "", ""), new Trip(1, "Nume", "Destinatie", null, null, null, null, null));
+        Expense e = new Expense(expenseType, productName, Float.valueOf(cost), selectedCurrency, Float.valueOf(percentage), currentUserObject, new Trip(1, "Nume", "Destinatie", null, null, null, null, null));
         new AddExpenseReqTask().execute(e);
     }
 

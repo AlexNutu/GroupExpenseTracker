@@ -13,14 +13,12 @@ import android.widget.EditText;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import com.example.expensetracker.domain.Expense;
 import com.example.expensetracker.domain.Trip;
+import com.example.expensetracker.domain.User;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.concurrent.ExecutionException;
 
 public class AddTrip extends AppCompatActivity {
 
@@ -35,6 +33,7 @@ public class AddTrip extends AppCompatActivity {
     private String tripStartDateString;
     private String tripEndDateString;
 
+    private User currentUserObject;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +42,11 @@ public class AddTrip extends AppCompatActivity {
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        Intent intent = getIntent();
+        if (intent != null) {
+            currentUserObject = (User) intent.getSerializableExtra("currentUserObject");
+        }
 
         etName = (EditText) findViewById(R.id.tripName);
         etDescription = (EditText) findViewById(R.id.tripDestination);

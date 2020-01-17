@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -35,9 +36,12 @@ public class AddToDoDialog extends AppCompatDialogFragment {
     private Integer tripId;
     private Context activityContext;
 
+    private User currentUserObject;
 
-    public AddToDoDialog(Integer tripIdParam) {
+
+    public AddToDoDialog(Integer tripIdParam, User currentUser) {
         this.tripId = tripIdParam;
+        this.currentUserObject = currentUser;
     }
 
     @Override
@@ -49,6 +53,7 @@ public class AddToDoDialog extends AppCompatDialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
+
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
@@ -67,14 +72,10 @@ public class AddToDoDialog extends AppCompatDialogFragment {
                     public void onClick(DialogInterface dialog, int which) {
                         String toDoText = toDoET.getText().toString();
 
-                        //TODO: to retrieve the current user
-                        User currentUser = new User();
-                        currentUser.setId(1L);
-
                         Trip currentTrip = new Trip();
                         currentTrip.setId(tripId);
 
-                        ToDoObjectWithTrip toDoObjectWithTrip = new ToDoObjectWithTrip(false, toDoText, currentUser, currentTrip);
+                        ToDoObjectWithTrip toDoObjectWithTrip = new ToDoObjectWithTrip(false, toDoText, currentUserObject, currentTrip);
                         new AddToDoReqTask().execute(toDoObjectWithTrip);
                     }
                 });
