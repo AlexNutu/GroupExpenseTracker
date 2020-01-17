@@ -19,6 +19,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import com.example.expensetracker.domain.Trip;
+import com.example.expensetracker.domain.User;
 import com.example.expensetracker.helper.DatabaseHelper;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -38,11 +39,12 @@ public class MainActivity extends AppCompatActivity {
 
     private EditText inputSearch;
 
-    private Long currentUserId;
+    private User currentUserObject;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         db = new DatabaseHelper(getApplicationContext());
         db.getReadableDatabase();
@@ -52,9 +54,11 @@ public class MainActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
         if (intent != null) {
-            currentUserId = intent.getLongExtra("loggedUserId", -1);
-            if (currentUserId != -1) {
+            currentUserObject = (User) intent.getSerializableExtra("currentUserObject");
+            if (intent.getStringExtra("fromActivity").equals("LoginActivity")) {
                 Toast.makeText(MainActivity.this, "Logged in successfully!", Toast.LENGTH_SHORT).show();
+            } else if (intent.getStringExtra("fromActivity").equals("RegisterActivity")) {
+                Toast.makeText(MainActivity.this, "Registered successfully!", Toast.LENGTH_SHORT).show();
             }
         }
 

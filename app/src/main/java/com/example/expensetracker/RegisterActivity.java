@@ -1,16 +1,35 @@
 package com.example.expensetracker;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.example.expensetracker.domain.User;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.concurrent.ExecutionException;
 
 public class RegisterActivity extends AppCompatActivity {
 
+    private EditText emailRegisterET;
+    private EditText firstNameET;
+    private EditText lastNameET;
+    private EditText passRegisterET;
+    private EditText confirmRegisterET;
     private Button registerBtn;
     private TextView seeDemoTV;
 
@@ -19,10 +38,22 @@ public class RegisterActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
 
+        emailRegisterET = (EditText) findViewById(R.id.emailRegisterET);
+        firstNameET = (EditText) findViewById(R.id.firstNameRegisterET);
+        lastNameET = (EditText) findViewById(R.id.lastNameRegisterET);
+        passRegisterET = (EditText) findViewById(R.id.passRegisterET);
+        confirmRegisterET = (EditText) findViewById(R.id.confirmRegisterET);
         registerBtn = (Button) findViewById(R.id.registerBtn);
         seeDemoTV = (TextView) findViewById(R.id.seeDemoTV);
 
+        emailRegisterET.addTextChangedListener(mTextWatcher);
+        firstNameET.addTextChangedListener(mTextWatcher);
+        lastNameET.addTextChangedListener(mTextWatcher);
+        passRegisterET.addTextChangedListener(mTextWatcher);
+        confirmRegisterET.addTextChangedListener(mTextWatcher);
+
         setActions();
+        checkFieldsForEmptyValues();
     }
 
     private void setActions() {
@@ -30,8 +61,32 @@ public class RegisterActivity extends AppCompatActivity {
         registerBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent myIntent = new Intent(RegisterActivity.this, MainActivity.class);
-                startActivity(myIntent);
+
+                String emailRegister = emailRegisterET.getText().toString().trim();
+                String firstName = firstNameET.getText().toString().trim();
+                String lastName = lastNameET.getText().toString().trim();
+                String passRegister = passRegisterET.getText().toString().trim();
+                String confirmRegister = confirmRegisterET.getText().toString().trim();
+
+                if (!passRegister.equals(confirmRegister)) {
+                    Toast.makeText(RegisterActivity.this, "Password and Confirm don't match!", Toast.LENGTH_SHORT).show();
+                } else {
+                    User userToInsert = new User();
+                    userToInsert.setEmail(emailRegister);
+                    userToInsert.setFirstName(firstName);
+                    userToInsert.setLastName(lastName);
+                    userToInsert.setPassword(passRegister);
+                    User insertedUser = new User();
+                    try {
+                        insertedUser = new RegisterUserReqTask().execute(userToInsert).get();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    Intent myIntent = new Intent(RegisterActivity.this, MainActivity.class);
+                    myIntent.putExtra("fromActivity", "RegisterActivity");
+                    myIntent.putExtra("currentUserObject", insertedUser);
+                    startActivity(myIntent);
+                }
             }
         });
 
@@ -45,6 +100,68 @@ public class RegisterActivity extends AppCompatActivity {
 
     private void openDemoDialog() {
         DemoDialog demoDialog = new DemoDialog();
-        demoDialog.show(getSupportFragmentManager(), "example dialog");
+        demoDialog.show(getSupportFragmentManager(), "demo dialog");
     }
+
+    //  create a textWatcher member
+    private TextWatcher mTextWatcher = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3) {
+        }
+
+        @Override
+        public void onTextChanged(CharSequence charSequence, int i, int i2, int i3) {
+        }
+
+        @Override
+        public void afterTextChanged(Editable editable) {
+            // check Fields For Empty Values
+            checkFieldsForEmptyValues();
+        }
+    };
+
+    void checkFieldsForEmptyValues() {
+        Button b = (Button) findViewById(R.id.registerBtn);
+
+        String emailRegister = emailRegisterET.getText().toString().trim();
+        String firstName = firstNameET.getText().toString().trim();
+        String lastName = lastNameET.getText().toString().trim();
+        String passRegister = passRegisterET.getText().toString().trim();
+        String confirmRegister = confirmRegisterET.getText().toString().trim();
+
+        if (emailRegister.equals("") || passRegister.equals("") || confirmRegister.equals("")
+                || firstName.equals("") || lastName.equals("")) {
+            b.setEnabled(false);
+        } else {
+            b.setEnabled(true);
+        }
+    }
+
+    private class RegisterUserReqTask extends AsyncTask<User, Void, User> {
+
+        @Override
+        protected User doInBackground(User... params) {
+
+            User userToRegisterParam = params[0];
+            User resultedUser = new User();
+            try {
+                String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/user";
+                RestTemplate restTemplate = new RestTemplate();
+                restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+                ResponseEntity<User> userObjectResult = restTemplate.postForEntity(apiUrl, userToRegisterParam, User.class);
+                resultedUser = userObjectResult.getBody();
+                return resultedUser;
+
+            } catch (Exception e) {
+                Log.e("ERROR-REGISTER", e.getMessage());
+                resultedUser.setErrorMessage(((HttpClientErrorException) e).getResponseBodyAsString() + "!");
+                return resultedUser;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(User resultedUser) {
+        }
+    }
+
 }

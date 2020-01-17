@@ -104,15 +104,13 @@ public class AddTrip extends AppCompatActivity {
                 Integer insertedTripId = -1;
                 try {
                     insertedTripId = new AddTripReqTask().execute(tripToInsert).get();
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
 
                 Intent myIntent = new Intent(AddTrip.this, ViewTrip.class);
                 myIntent.putExtra("tripId", insertedTripId);
-                myIntent.putExtra("fromActivity", "AddTrip");
+                myIntent.putExtra("fromActivity", this.getClass().getSimpleName());
 
                 startActivity(myIntent);
             }

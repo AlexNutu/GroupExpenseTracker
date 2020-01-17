@@ -1,8 +1,5 @@
 package com.example.expensetracker;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.AsyncTask;
@@ -14,18 +11,15 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.example.expensetracker.domain.Notification;
-import com.example.expensetracker.domain.Trip;
 import com.example.expensetracker.domain.User;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import org.w3c.dom.Text;
-
-import java.util.concurrent.ExecutionException;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -71,7 +65,8 @@ public class LoginActivity extends AppCompatActivity {
 
                     if (resultedUser.getErrorMessage() == null || resultedUser.getErrorMessage().equals("")) {
                         Intent myIntent = new Intent(LoginActivity.this, MainActivity.class);
-                        myIntent.putExtra("loggedUserId", resultedUser.getId());
+                        myIntent.putExtra("currentUserObject", resultedUser);
+                        myIntent.putExtra("fromActivity", "LoginActivity");
                         startActivity(myIntent);
                     } else {
                         // Display error from BE

@@ -1,6 +1,9 @@
 package com.example.expensetracker.domain;
 
-public class User {
+import java.io.Serializable;
+
+@SuppressWarnings("serial") //With this annotation we are going to hide compiler warnings
+public class User implements Serializable {
     private Long id;
     private String firstName;
     private String lastName;
@@ -66,5 +69,17 @@ public class User {
 
     public void setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                ", errorMessage='" + errorMessage + '\'' +
+                '}';
     }
 }
