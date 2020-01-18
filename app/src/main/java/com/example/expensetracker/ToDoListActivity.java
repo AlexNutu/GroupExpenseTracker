@@ -10,6 +10,7 @@ import android.widget.ListView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.example.expensetracker.adapter.ToDoListAdapter;
 import com.example.expensetracker.dialog.AddToDoDialog;
 import com.example.expensetracker.domain.ToDoObject;
 import com.example.expensetracker.domain.User;
@@ -21,7 +22,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 
-public class ToDoList extends AppCompatActivity {
+public class ToDoListActivity extends AppCompatActivity {
 
     private Integer tripId = -1;
     private User currentUserObject;

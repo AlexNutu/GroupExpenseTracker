@@ -11,8 +11,7 @@ import android.view.View;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import com.example.expensetracker.domain.ToDoObject;
-import com.example.expensetracker.domain.ToDoObjectWithTrip;
+import com.example.expensetracker.adapter.MembersListAdapter;
 import com.example.expensetracker.domain.User;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -26,7 +25,7 @@ import java.util.concurrent.ExecutionException;
 import in.galaxyofandroid.spinerdialog.OnSpinerItemClick;
 import in.galaxyofandroid.spinerdialog.SpinnerDialog;
 
-public class ViewMembers extends AppCompatActivity {
+public class ViewMembersActivity extends AppCompatActivity {
 
     private SpinnerDialog spinnerDialog;
     private Integer tripId;
@@ -62,7 +61,7 @@ public class ViewMembers extends AppCompatActivity {
         for (int i = 0; i < usersListFromDB.length; i++) {
             fullNameList.add(usersListFromDB[i].getFirstName() + " " + usersListFromDB[i].getLastName());
         }
-        spinnerDialog = new SpinnerDialog(ViewMembers.this, fullNameList, "Select member");
+        spinnerDialog = new SpinnerDialog(ViewMembersActivity.this, fullNameList, "Select member");
         spinnerDialog.bindOnSpinerListener(new OnSpinerItemClick() {
             @Override
             public void onClick(String selectedUserFullName, int position) {
@@ -88,9 +87,9 @@ public class ViewMembers extends AppCompatActivity {
                         e.printStackTrace();
                     }
 
-                    Toast.makeText(ViewMembers.this, selectedUserFullName + " is now member!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ViewMembersActivity.this, selectedUserFullName + " is now member!", Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(ViewMembers.this, "Warning! " + selectedUserFullName + " already exists!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ViewMembersActivity.this, "Warning! " + selectedUserFullName + " already exists!", Toast.LENGTH_SHORT).show();
                 }
             }
         });

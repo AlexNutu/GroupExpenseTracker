@@ -23,7 +23,7 @@ import com.getbase.floatingactionbutton.FloatingActionButton;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
-public class ViewTrip extends AppCompatActivity implements ExpenseDialogListener {
+public class ViewTripActivity extends AppCompatActivity implements ExpenseDialogListener {
 
     private TextView tripTitleTV;
     private TextView tripDestinationTV;
@@ -51,7 +51,7 @@ public class ViewTrip extends AppCompatActivity implements ExpenseDialogListener
     public void onBackPressed() {
         Intent myIntent = new Intent(this, MainActivity.class);
         myIntent.putExtra("currentUserObject", this.currentUserObject);
-        myIntent.putExtra("fromActivity", "ViewTrip");
+        myIntent.putExtra("fromActivity", "ViewTripActivity");
         startActivity(myIntent);
     }
 
@@ -61,7 +61,7 @@ public class ViewTrip extends AppCompatActivity implements ExpenseDialogListener
         if (currentIntent != null) {
             currentUserObject = (User) currentIntent.getSerializableExtra("currentUserObject");
             String fromActivity = currentIntent.getStringExtra("fromActivity");
-            if (fromActivity != null && fromActivity.equals("AddTrip")) {
+            if (fromActivity != null && fromActivity.equals("AddTripActivity")) {
                 // We are here from AddTripActivity
                 Toast.makeText(getApplicationContext(), "Trip added successfully!", Toast.LENGTH_SHORT).show();
             }
@@ -109,7 +109,7 @@ public class ViewTrip extends AppCompatActivity implements ExpenseDialogListener
         viewMembersBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent membersIntent = new Intent(ViewTrip.this, ViewMembers.class);
+                Intent membersIntent = new Intent(ViewTripActivity.this, ViewMembersActivity.class);
                 if (fromIntent != null) {
                     membersIntent.putExtra("tripId", fromIntent.getIntExtra("tripId", 0));
                 }
@@ -120,7 +120,7 @@ public class ViewTrip extends AppCompatActivity implements ExpenseDialogListener
         genReportBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(ViewTrip.this, ViewReport.class);
+                Intent intent = new Intent(ViewTripActivity.this, ViewReportActivity.class);
                 if (fromIntent != null) {
                     intent.putExtra("tripId", fromIntent.getIntExtra("tripId", 0));
                 }
@@ -131,7 +131,7 @@ public class ViewTrip extends AppCompatActivity implements ExpenseDialogListener
         toDoListBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent toDoListIntent = new Intent(ViewTrip.this, ToDoList.class);
+                Intent toDoListIntent = new Intent(ViewTripActivity.this, ToDoListActivity.class);
                 if (fromIntent != null) {
                     toDoListIntent.putExtra("currentUserObject", currentUserObject);
                     toDoListIntent.putExtra("tripId", fromIntent.getIntExtra("tripId", 0));

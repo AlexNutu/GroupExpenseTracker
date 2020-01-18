@@ -1,4 +1,4 @@
-package com.example.expensetracker;
+package com.example.expensetracker.adapter;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -14,6 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 
+import com.example.expensetracker.R;
 import com.example.expensetracker.domain.Expense;
 import com.example.expensetracker.domain.ToDoObject;
 import com.example.expensetracker.domain.ui.main.PageViewModel;

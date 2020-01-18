@@ -10,7 +10,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -20,11 +19,8 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatDialogFragment;
 
 import com.example.expensetracker.R;
-import com.example.expensetracker.ToDoListAdapter;
+import com.example.expensetracker.adapter.ToDoListAdapter;
 import com.example.expensetracker.domain.ToDoObject;
-import com.example.expensetracker.domain.ToDoObjectWithTrip;
-import com.example.expensetracker.domain.Trip;
-import com.example.expensetracker.domain.User;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;

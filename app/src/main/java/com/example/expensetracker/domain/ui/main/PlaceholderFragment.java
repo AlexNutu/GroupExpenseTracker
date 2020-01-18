@@ -16,7 +16,7 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
 import com.example.expensetracker.R;
-import com.example.expensetracker.ViewReportAdapter;
+import com.example.expensetracker.adapter.ViewReportAdapter;
 import com.example.expensetracker.domain.Expense;
 
 import org.springframework.http.ResponseEntity;

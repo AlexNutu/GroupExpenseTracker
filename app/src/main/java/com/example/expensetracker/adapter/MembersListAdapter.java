@@ -1,4 +1,4 @@
-package com.example.expensetracker;
+package com.example.expensetracker.adapter;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -11,6 +11,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.example.expensetracker.R;
 import com.example.expensetracker.domain.User;
 
 import java.util.ArrayList;

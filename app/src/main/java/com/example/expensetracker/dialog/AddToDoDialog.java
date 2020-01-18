@@ -5,7 +5,6 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -20,7 +19,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatDialogFragment;
 
 import com.example.expensetracker.R;
-import com.example.expensetracker.ToDoListAdapter;
+import com.example.expensetracker.adapter.ToDoListAdapter;
 import com.example.expensetracker.domain.ToDoObject;
 import com.example.expensetracker.domain.ToDoObjectWithTrip;
 import com.example.expensetracker.domain.Trip;

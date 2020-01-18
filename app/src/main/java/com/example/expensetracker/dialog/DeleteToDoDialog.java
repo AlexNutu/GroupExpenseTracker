@@ -18,7 +18,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatDialogFragment;
 
 import com.example.expensetracker.R;
-import com.example.expensetracker.ToDoListAdapter;
+import com.example.expensetracker.adapter.ToDoListAdapter;
 import com.example.expensetracker.domain.ToDoObject;
 
 import org.springframework.http.ResponseEntity;

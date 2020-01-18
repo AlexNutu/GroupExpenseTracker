@@ -1,8 +1,12 @@
 package com.example.expensetracker;
 
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -21,6 +25,7 @@ import androidx.appcompat.widget.Toolbar;
 import com.example.expensetracker.domain.Trip;
 import com.example.expensetracker.domain.User;
 import com.example.expensetracker.helper.DatabaseHelper;
+import com.example.expensetracker.service.NotificationJobService;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.springframework.http.ResponseEntity;
@@ -29,14 +34,14 @@ import org.springframework.web.client.RestTemplate;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final String TAG = "MainActivity";
+
     DatabaseHelper db;
 
     // list of trips
     private ListView lv;
-
     // adapter for list view
     private ArrayAdapter<String> adapter;
-
     private EditText inputSearch;
 
     private User currentUserObject;
@@ -63,7 +68,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
         addTripButton();
+
         new GetTripsReqTask().execute();
+
+        // Start job for sending notifications
+        scheduleJob(findViewById(android.R.id.content).getRootView());
     }
 
     private void addTripButton() {
@@ -72,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View v) {
-                Intent myIntent = new Intent(MainActivity.this, AddTrip.class);
+                Intent myIntent = new Intent(MainActivity.this, AddTripActivity.class);
                 myIntent.putExtra("currentUserObject", currentUserObject);
                 startActivity(myIntent);
             }
@@ -95,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent myIntent = new Intent(MainActivity.this, ViewTrip.class);
+                Intent myIntent = new Intent(MainActivity.this, ViewTripActivity.class);
                 myIntent.putExtra("currentUserObject", currentUserObject);
                 Integer tripIdToSend = -1;
                 for (int i = 0; i < tripsFromDB.length; i++) {
@@ -174,4 +183,32 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
+    // Scheduled job code
+    public void scheduleJob(View v) {
+        ComponentName componentName = new ComponentName(this, NotificationJobService.class);
+        PersistableBundle paramsBundle = new PersistableBundle();
+        paramsBundle.putLong("currentUserId", currentUserObject.getId());
+        JobInfo jobInfo = new JobInfo.Builder(123, componentName)
+                .setRequiredNetworkType(JobInfo.NETWORK_TYPE_UNMETERED)
+                .setPersisted(true)
+                .setPeriodic(15 * 60 * 1000)
+                .setExtras(paramsBundle)
+                .build();
+        JobScheduler scheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
+        int resultCode = scheduler.schedule(jobInfo);
+        if (resultCode == JobScheduler.RESULT_SUCCESS) {
+            Log.d(TAG, "Job scheduled!");
+        } else {
+            Log.d(TAG, "Job scheduling failed!");
+        }
+    }
+
+    public void cancelJob(View v) {
+        JobScheduler scheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
+        scheduler.cancel(123);
+        Log.d(TAG, "Job canceled!");
+    }
+
+
 }

@@ -20,7 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
-public class AddTrip extends AppCompatActivity {
+public class AddTripActivity extends AppCompatActivity {
 
     private EditText etName;
     private EditText etDescription;
@@ -112,7 +112,7 @@ public class AddTrip extends AppCompatActivity {
                     e.printStackTrace();
                 }
 
-                Intent myIntent = new Intent(AddTrip.this, ViewTrip.class);
+                Intent myIntent = new Intent(AddTripActivity.this, ViewTripActivity.class);
                 myIntent.putExtra("tripId", insertedTripId);
                 myIntent.putExtra("currentUserObject", currentUserObject);
                 myIntent.putExtra("fromActivity", this.getClass().getSimpleName());

@@ -1,8 +1,11 @@
 package com.example.expensetracker;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -13,7 +16,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.expensetracker.domain.Notification;
+import com.example.expensetracker.domain.NotificationDB;
 import com.example.expensetracker.domain.User;
 
 import org.springframework.http.ResponseEntity;
@@ -23,10 +26,14 @@ import org.springframework.web.client.RestTemplate;
 
 public class LoginActivity extends AppCompatActivity {
 
+    public static final String CHANNEL_1_ID = "channel1";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        createNotificationChannels();
 
         setActions();
     }
@@ -40,6 +47,7 @@ public class LoginActivity extends AppCompatActivity {
         loginBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
 
                 if (emailET.getText().toString().trim().equals("")
                         && passET.getText().toString().trim().equals("")) {
@@ -119,30 +127,19 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    private class HttpReqTask extends AsyncTask<Void, Void, Notification> {
-        @Override
-        protected Notification doInBackground(Void... voids) {
+    // NotificationDB code
+    private void createNotificationChannels() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel1 = new NotificationChannel(
+                    CHANNEL_1_ID,
+                    "Channel 1",
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            channel1.setDescription("This is Channel 1");
 
-            try {
-                String apiUrl = "http://10.0.2.2:8080/trackerApi/notification";
-                RestTemplate restTemplate = new RestTemplate();
-                restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                Notification not = restTemplate.getForObject(apiUrl, Notification.class);
-                return not;
-            } catch (Exception e) {
-                Log.e("", e.getMessage());
-            }
-            return null;
-        }
 
-        @Override
-        protected void onPostExecute(Notification notification) {
-            super.onPostExecute(notification);
-
-            Log.i("NOTIFICATION: ", "##########");
-            Log.i("title: ", notification.getTitle());
-            Log.i("message: ", notification.getMessage());
-            Log.i("datetime: ", notification.getNotificationDate().toString());
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            manager.createNotificationChannel(channel1);
         }
     }
 }
