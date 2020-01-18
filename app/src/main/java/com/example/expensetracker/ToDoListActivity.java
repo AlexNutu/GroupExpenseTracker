@@ -14,8 +14,12 @@ import com.example.expensetracker.adapter.ToDoListAdapter;
 import com.example.expensetracker.dialog.AddToDoDialog;
 import com.example.expensetracker.domain.ToDoObject;
 import com.example.expensetracker.domain.User;
+import com.example.expensetracker.helper.Session;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
@@ -24,9 +28,10 @@ import java.util.ArrayList;
 
 public class ToDoListActivity extends AppCompatActivity {
 
+    private Session session;
+
     private Integer tripId = -1;
     private User currentUserObject;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +39,8 @@ public class ToDoListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_to_do_list);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        session = new Session(getApplicationContext());
 
         Intent currentIntent = getIntent();
         if (currentIntent != null) {
@@ -88,9 +95,12 @@ public class ToDoListActivity extends AppCompatActivity {
             int tripIdParam = params[0];
             try {
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/note?search=trip:" + tripIdParam;
+                HttpHeaders requestHeaders = new HttpHeaders();
+                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
+                HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                ResponseEntity<ToDoObject[]> responseEntity = restTemplate.getForEntity(apiUrl, ToDoObject[].class);
+                ResponseEntity<ToDoObject[]> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, ToDoObject[].class);
                 toDoFromDB = responseEntity.getBody();
 
             } catch (Exception e) {

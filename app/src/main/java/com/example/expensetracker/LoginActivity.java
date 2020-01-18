@@ -18,6 +18,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.expensetracker.domain.NotificationDB;
 import com.example.expensetracker.domain.User;
+import com.example.expensetracker.helper.Session;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -27,11 +28,13 @@ import org.springframework.web.client.RestTemplate;
 public class LoginActivity extends AppCompatActivity {
 
     public static final String CHANNEL_1_ID = "channel1";
+    private Session session;//global variable
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        session = new Session(getApplicationContext());
 
         createNotificationChannels();
 
@@ -108,11 +111,12 @@ public class LoginActivity extends AppCompatActivity {
             User userToLoginParam = params[0];
             User resultedUser = new User();
             try {
-                String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/user/login";
+                String apiUrl = "http://10.0.2.2:8080/login/";
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
                 ResponseEntity<User> userObjectResult = restTemplate.postForEntity(apiUrl, userToLoginParam, User.class);
                 resultedUser = userObjectResult.getBody();
+                session.setCookie(userObjectResult.getHeaders().get("Set-Cookie").get(0).split("=")[1].split(";")[0]);
                 return resultedUser;
 
             } catch (Exception e) {
