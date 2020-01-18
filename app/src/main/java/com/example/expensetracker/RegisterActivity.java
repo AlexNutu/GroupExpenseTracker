@@ -14,14 +14,13 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.expensetracker.dialog.DemoDialog;
 import com.example.expensetracker.domain.User;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.concurrent.ExecutionException;
 
 public class RegisterActivity extends AppCompatActivity {
 

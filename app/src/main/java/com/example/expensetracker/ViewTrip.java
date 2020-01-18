@@ -12,17 +12,16 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.example.expensetracker.dialog.AddComplexExpenseDialog;
+import com.example.expensetracker.dialog.AddSimpleExpenseDialog;
 import com.example.expensetracker.domain.Expense;
 import com.example.expensetracker.domain.ExpenseDialogListener;
 import com.example.expensetracker.domain.Trip;
 import com.example.expensetracker.domain.User;
 import com.getbase.floatingactionbutton.FloatingActionButton;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
-
-import java.time.LocalDateTime;
 
 public class ViewTrip extends AppCompatActivity implements ExpenseDialogListener {
 

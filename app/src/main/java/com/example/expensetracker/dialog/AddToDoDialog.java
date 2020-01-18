@@ -1,4 +1,4 @@
-package com.example.expensetracker;
+package com.example.expensetracker.dialog;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -19,6 +19,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatDialogFragment;
 
+import com.example.expensetracker.R;
+import com.example.expensetracker.ToDoListAdapter;
 import com.example.expensetracker.domain.ToDoObject;
 import com.example.expensetracker.domain.ToDoObjectWithTrip;
 import com.example.expensetracker.domain.Trip;
