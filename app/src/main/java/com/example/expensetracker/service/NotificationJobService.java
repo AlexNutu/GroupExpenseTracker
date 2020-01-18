@@ -64,6 +64,12 @@ public class NotificationJobService extends JobService {
                             }
 
                             for (int i = 0; i < notificationDBList.length; i++) {
+                                try {
+                                    // Send notifications at 2 secondds distance
+                                    Thread.sleep(3000);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
                                 sendNotificationCh1(notificationDBList[i].getMessage());
                             }
                         }

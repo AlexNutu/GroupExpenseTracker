@@ -3,6 +3,7 @@ package com.example.expensetracker;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Editable;
@@ -86,10 +87,18 @@ public class RegisterActivity extends AppCompatActivity {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    Intent myIntent = new Intent(RegisterActivity.this, MainActivity.class);
-                    myIntent.putExtra("fromActivity", "RegisterActivity");
-                    myIntent.putExtra("currentUserObject", insertedUser);
-                    startActivity(myIntent);
+                    if (insertedUser.getErrorMessage() == null || insertedUser.getErrorMessage().equals("")) {
+                        Intent myIntent = new Intent(RegisterActivity.this, LoginActivity.class);
+                        myIntent.putExtra("fromActivity", "RegisterActivity");
+                        myIntent.putExtra("currentUserObject", insertedUser);
+                        startActivity(myIntent);
+                    } else {
+                        // Display error from BE
+                        Toast toast = Toast.makeText(RegisterActivity.this, insertedUser.getErrorMessage(), Toast.LENGTH_SHORT);
+                        TextView tv = (TextView) toast.getView().findViewById(android.R.id.message);
+                        tv.setTextColor(Color.RED);
+                        toast.show();
+                    }
                 }
             }
         });
@@ -154,7 +163,6 @@ public class RegisterActivity extends AppCompatActivity {
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
                 ResponseEntity<User> userObjectResult = restTemplate.postForEntity(apiUrl, userToRegisterParam, User.class);
                 resultedUser = userObjectResult.getBody();
-//                session.setCookie(userObjectResult.getHeaders().get("Set-Cookie").get(0).split("=")[1].split(";")[0]);
                 return resultedUser;
 
             } catch (Exception e) {
