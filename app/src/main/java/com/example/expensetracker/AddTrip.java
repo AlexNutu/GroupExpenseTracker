@@ -15,12 +15,20 @@ import androidx.appcompat.widget.Toolbar;
 
 import com.example.expensetracker.domain.Trip;
 import com.example.expensetracker.domain.User;
+import com.example.expensetracker.helper.Session;
 
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 public class AddTrip extends AppCompatActivity {
+
+    private Session session;
 
     private EditText etName;
     private EditText etDescription;
@@ -39,6 +47,8 @@ public class AddTrip extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_tript);
+
+        session = new Session(getApplicationContext());
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -131,11 +141,19 @@ public class AddTrip extends AppCompatActivity {
             Trip tripToAdd = params[0];
             try {
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/trip";
+                HttpHeaders requestHeaders = new HttpHeaders();
+                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
+                HttpEntity requestEntity = new HttpEntity(tripToAdd, requestHeaders);
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                ResponseEntity<Trip> tripResponse = restTemplate.postForEntity(apiUrl, tripToAdd, Trip.class);
+                ResponseEntity<Trip> tripResponse = restTemplate.exchange(apiUrl, HttpMethod.POST, requestEntity, Trip.class);
                 return tripResponse.getBody().getId();
             } catch (Exception e) {
+                if (((HttpClientErrorException) e).getStatusCode().value() == 403)
+                {
+                    Intent myIntent = new Intent(AddTrip.this, LoginActivity.class);
+                    startActivity(myIntent);
+                }
                 Log.e("ERROR-ADD-TRIP", e.getMessage());
             }
             return -1;

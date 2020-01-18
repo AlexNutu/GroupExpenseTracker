@@ -14,10 +14,15 @@ import android.widget.Toast;
 import com.example.expensetracker.domain.ToDoObject;
 import com.example.expensetracker.domain.ToDoObjectWithTrip;
 import com.example.expensetracker.domain.User;
+import com.example.expensetracker.helper.Session;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
@@ -27,6 +32,8 @@ import in.galaxyofandroid.spinerdialog.OnSpinerItemClick;
 import in.galaxyofandroid.spinerdialog.SpinnerDialog;
 
 public class ViewMembers extends AppCompatActivity {
+
+    private Session session;
 
     private SpinnerDialog spinnerDialog;
     private Integer tripId;
@@ -38,6 +45,8 @@ public class ViewMembers extends AppCompatActivity {
         setContentView(R.layout.activity_view_members);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        session = new Session(getApplicationContext());
 
         Intent currentIntent = getIntent();
         if (currentIntent != null) {
@@ -113,11 +122,19 @@ public class ViewMembers extends AppCompatActivity {
             User memberToInsert = params[0];
             try {
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/trip/ " + tripId + "/member";
+                HttpHeaders requestHeaders = new HttpHeaders();
+                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
+                HttpEntity requestEntity = new HttpEntity(memberToInsert, requestHeaders);
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                restTemplate.postForEntity(apiUrl, memberToInsert, User.class);
+                restTemplate.exchange(apiUrl, HttpMethod.POST, requestEntity, User.class);
 
             } catch (Exception e) {
+                if (((HttpClientErrorException) e).getStatusCode().value() == 403)
+                {
+                    Intent myIntent = new Intent(ViewMembers.this, LoginActivity.class);
+                    startActivity(myIntent);
+                }
                 Log.e("ERROR-ADD-MEMBER", e.getMessage());
             }
             return null;
@@ -137,12 +154,20 @@ public class ViewMembers extends AppCompatActivity {
             User[] usersList = {};
             try {
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/user";
+                HttpHeaders requestHeaders = new HttpHeaders();
+                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
+                HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                ResponseEntity<User[]> responseEntity = restTemplate.getForEntity(apiUrl, User[].class);
+                ResponseEntity<User[]> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, User[].class);
                 usersList = responseEntity.getBody();
 
             } catch (Exception e) {
+                if (((HttpClientErrorException) e).getStatusCode().value() == 403)
+                {
+                    Intent myIntent = new Intent(ViewMembers.this, LoginActivity.class);
+                    startActivity(myIntent);
+                }
                 Log.e("ERROR-GET-MEMBERS", e.getMessage());
             }
 
@@ -163,12 +188,20 @@ public class ViewMembers extends AppCompatActivity {
             int tripIdParam = params[0];
             try {
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/user?search=tripList:" + tripIdParam;
+                HttpHeaders requestHeaders = new HttpHeaders();
+                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
+                HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                ResponseEntity<User[]> responseEntity = restTemplate.getForEntity(apiUrl, User[].class);
+                ResponseEntity<User[]> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, User[].class);
                 membersList = responseEntity.getBody();
 
             } catch (Exception e) {
+                if (((HttpClientErrorException) e).getStatusCode().value() == 403)
+                {
+                    Intent myIntent = new Intent(ViewMembers.this, LoginActivity.class);
+                    startActivity(myIntent);
+                }
                 Log.e("ERROR-GET-MEMBERS", e.getMessage());
             }
 

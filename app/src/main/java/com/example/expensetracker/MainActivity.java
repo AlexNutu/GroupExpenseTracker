@@ -21,15 +21,22 @@ import androidx.appcompat.widget.Toolbar;
 import com.example.expensetracker.domain.Trip;
 import com.example.expensetracker.domain.User;
 import com.example.expensetracker.helper.DatabaseHelper;
+import com.example.expensetracker.helper.Session;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 public class MainActivity extends AppCompatActivity {
 
     DatabaseHelper db;
+
+    private Session session;
 
     // list of trips
     private ListView lv;
@@ -51,6 +58,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        session = new Session(getApplicationContext());
 
         Intent intent = getIntent();
         if (intent != null) {
@@ -135,12 +144,20 @@ public class MainActivity extends AppCompatActivity {
             Trip[] tripsFromDB = {};
             try {
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/trip";
+                HttpHeaders requestHeaders = new HttpHeaders();
+                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
+                HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                ResponseEntity<Trip[]> responseEntity = restTemplate.getForEntity(apiUrl, Trip[].class);
+                ResponseEntity<Trip[]> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, Trip[].class);
                 tripsFromDB = responseEntity.getBody();
 
             } catch (Exception e) {
+                if (((HttpClientErrorException) e).getStatusCode().value() == 403)
+                {
+                    Intent myIntent = new Intent(MainActivity.this, LoginActivity.class);
+                    startActivity(myIntent);
+                }
                 Log.e("ERROR-GET-TRIPS", e.getMessage());
             }
 

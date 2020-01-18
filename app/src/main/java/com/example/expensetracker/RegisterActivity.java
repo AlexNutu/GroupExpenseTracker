@@ -16,6 +16,7 @@ import android.widget.Toast;
 
 import com.example.expensetracker.dialog.DemoDialog;
 import com.example.expensetracker.domain.User;
+import com.example.expensetracker.helper.Session;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -23,6 +24,8 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 public class RegisterActivity extends AppCompatActivity {
+
+    private Session session;
 
     private EditText emailRegisterET;
     private EditText firstNameET;
@@ -36,6 +39,8 @@ public class RegisterActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
+
+        session = new Session(getApplicationContext());
 
         emailRegisterET = (EditText) findViewById(R.id.emailRegisterET);
         firstNameET = (EditText) findViewById(R.id.firstNameRegisterET);
@@ -144,11 +149,12 @@ public class RegisterActivity extends AppCompatActivity {
             User userToRegisterParam = params[0];
             User resultedUser = new User();
             try {
-                String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/user";
+                String apiUrl = "http://10.0.2.2:8080/register/";
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
                 ResponseEntity<User> userObjectResult = restTemplate.postForEntity(apiUrl, userToRegisterParam, User.class);
                 resultedUser = userObjectResult.getBody();
+//                session.setCookie(userObjectResult.getHeaders().get("Set-Cookie").get(0).split("=")[1].split(";")[0]);
                 return resultedUser;
 
             } catch (Exception e) {

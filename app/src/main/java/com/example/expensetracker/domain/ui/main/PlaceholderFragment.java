@@ -1,5 +1,6 @@
 package com.example.expensetracker.domain.ui.main;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,12 +16,19 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
+import com.example.expensetracker.AddTrip;
+import com.example.expensetracker.LoginActivity;
 import com.example.expensetracker.R;
 import com.example.expensetracker.ViewReportAdapter;
 import com.example.expensetracker.domain.Expense;
+import com.example.expensetracker.helper.Session;
 
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -39,6 +47,7 @@ public class PlaceholderFragment extends Fragment {
 
     private Integer idTrip;
 
+    private Session session;
 
     public static PlaceholderFragment newInstance(int index, int idTrip) {
         PlaceholderFragment fragment = new PlaceholderFragment();
@@ -52,6 +61,9 @@ public class PlaceholderFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        session = new Session(getContext());
+
         pageViewModel = ViewModelProviders.of(this).get(PageViewModel.class);
         int index = 1;
         if (getArguments() != null) {
@@ -85,9 +97,12 @@ public class PlaceholderFragment extends Fragment {
             int tripIdParam = params[0];
             try {
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/expense/report/trip/" + tripIdParam;
+                HttpHeaders requestHeaders = new HttpHeaders();
+                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
+                HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                ResponseEntity<Expense[]> responseEntity = restTemplate.getForEntity(apiUrl, Expense[].class);
+                ResponseEntity<Expense[]> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, Expense[].class);
                 unperfExpenses = responseEntity.getBody();
 
             } catch (Exception e) {
@@ -116,9 +131,12 @@ public class PlaceholderFragment extends Fragment {
             int tripIdParam = params[0];
             try {
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/expense?search=trip:" + tripIdParam;
+                HttpHeaders requestHeaders = new HttpHeaders();
+                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
+                HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                ResponseEntity<Expense[]> responseEntity = restTemplate.getForEntity(apiUrl, Expense[].class);
+                ResponseEntity<Expense[]> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, Expense[].class);
                 allExpenses = responseEntity.getBody();
 
             } catch (Exception e) {

@@ -25,7 +25,11 @@ import com.example.expensetracker.domain.ToDoObject;
 import com.example.expensetracker.domain.ToDoObjectWithTrip;
 import com.example.expensetracker.domain.Trip;
 import com.example.expensetracker.domain.User;
+import com.example.expensetracker.helper.Session;
 
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
@@ -40,6 +44,7 @@ public class AddToDoDialog extends AppCompatDialogFragment {
 
     private User currentUserObject;
 
+    private Session session;
 
     public AddToDoDialog(Integer tripIdParam, User currentUser) {
         this.tripId = tripIdParam;
@@ -56,6 +61,7 @@ public class AddToDoDialog extends AppCompatDialogFragment {
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
 
+        session = new Session(getContext());
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
@@ -95,9 +101,12 @@ public class AddToDoDialog extends AppCompatDialogFragment {
             ToDoObjectWithTrip toDoParam = params[0];
             try {
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/note";
+                HttpHeaders requestHeaders = new HttpHeaders();
+                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
+                HttpEntity requestEntity = new HttpEntity(toDoParam, requestHeaders);
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                restTemplate.postForEntity(apiUrl, toDoParam, ToDoObjectWithTrip.class);
+                restTemplate.exchange(apiUrl, HttpMethod.POST, requestEntity, ToDoObjectWithTrip.class);
 
             } catch (Exception e) {
                 Log.e("ERROR-ADD-TODO", e.getMessage());
@@ -137,9 +146,12 @@ public class AddToDoDialog extends AppCompatDialogFragment {
             int tripIdParam = params[0];
             try {
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/note?search=trip:" + tripIdParam;
+                HttpHeaders requestHeaders = new HttpHeaders();
+                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
+                HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                ResponseEntity<ToDoObject[]> responseEntity = restTemplate.getForEntity(apiUrl, ToDoObject[].class);
+                ResponseEntity<ToDoObject[]> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, ToDoObject[].class);
                 toDoFromDB = responseEntity.getBody();
 
             } catch (Exception e) {

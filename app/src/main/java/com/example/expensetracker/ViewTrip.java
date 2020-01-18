@@ -18,12 +18,20 @@ import com.example.expensetracker.domain.Expense;
 import com.example.expensetracker.domain.ExpenseDialogListener;
 import com.example.expensetracker.domain.Trip;
 import com.example.expensetracker.domain.User;
+import com.example.expensetracker.helper.Session;
 import com.getbase.floatingactionbutton.FloatingActionButton;
 
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 public class ViewTrip extends AppCompatActivity implements ExpenseDialogListener {
+
+    private Session session;
 
     private TextView tripTitleTV;
     private TextView tripDestinationTV;
@@ -36,6 +44,9 @@ public class ViewTrip extends AppCompatActivity implements ExpenseDialogListener
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_trip);
+
+        session = new Session(getApplicationContext());
+
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         tripTitleTV = (TextView) findViewById(R.id.tvViewTrip);
@@ -160,11 +171,19 @@ public class ViewTrip extends AppCompatActivity implements ExpenseDialogListener
             Integer idTrip = params[0];
             try {
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/trip/" + idTrip;
+                HttpHeaders requestHeaders = new HttpHeaders();
+                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
+                HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                Trip currentTrip = restTemplate.getForObject(apiUrl, Trip.class);
-                return currentTrip;
+                ResponseEntity<Trip> currentTrip = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, Trip.class);
+                return currentTrip.getBody();
             } catch (Exception e) {
+                if (((HttpClientErrorException) e).getStatusCode().value() == 403)
+                {
+                    Intent myIntent = new Intent(ViewTrip.this, LoginActivity.class);
+                    startActivity(myIntent);
+                }
                 Log.e("ERROR-GET-TRIP", e.getMessage());
             }
             return new Trip();
@@ -187,11 +206,19 @@ public class ViewTrip extends AppCompatActivity implements ExpenseDialogListener
             Expense expenseParam = params[0];
             try {
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/expense";
+                HttpHeaders requestHeaders = new HttpHeaders();
+                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
+                HttpEntity requestEntity = new HttpEntity(expenseParam, requestHeaders);
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                restTemplate.postForEntity(apiUrl, expenseParam, Expense.class);
+                restTemplate.exchange(apiUrl, HttpMethod.POST, requestEntity, Expense.class);
 
             } catch (Exception e) {
+                if (((HttpClientErrorException) e).getStatusCode().value() == 403)
+                {
+                    Intent myIntent = new Intent(ViewTrip.this, LoginActivity.class);
+                    startActivity(myIntent);
+                }
                 Log.e("ERROR-ADD-EXPENSE", e.getMessage());
             }
             return expenseParam;
