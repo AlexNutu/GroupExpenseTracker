@@ -152,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
 
             Trip[] tripsFromDB = {};
             try {
-                String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/trip";
+                String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/trip?search=members:" + currentUserObject.getId();
                 HttpHeaders requestHeaders = new HttpHeaders();
                 requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
                 HttpEntity requestEntity = new HttpEntity(null, requestHeaders);

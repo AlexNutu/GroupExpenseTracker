@@ -25,6 +25,9 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class AddTripActivity extends AppCompatActivity {
 
     private Session session;
@@ -112,8 +115,10 @@ public class AddTripActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 // Save the trip into DB
+                List<User> membersList = new ArrayList<>();
+                membersList.add(currentUserObject);
                 Trip tripToInsert =
-                        new Trip(null, tripNameString, tripDestinationString, tripStartDateString, tripEndDateString, null, null, null);
+                        new Trip(null, tripNameString, tripDestinationString, tripStartDateString, tripEndDateString, null, null, membersList);
                 Integer insertedTripId = -1;
                 try {
                     insertedTripId = new AddTripReqTask().execute(tripToInsert).get();
@@ -148,8 +153,7 @@ public class AddTripActivity extends AppCompatActivity {
                 ResponseEntity<Trip> tripResponse = restTemplate.exchange(apiUrl, HttpMethod.POST, requestEntity, Trip.class);
                 return tripResponse.getBody().getId();
             } catch (Exception e) {
-                if (((HttpClientErrorException) e).getStatusCode().value() == 403)
-                {
+                if (((HttpClientErrorException) e).getStatusCode().value() == 403) {
                     Intent myIntent = new Intent(AddTripActivity.this, LoginActivity.class);
                     startActivity(myIntent);
                 }
