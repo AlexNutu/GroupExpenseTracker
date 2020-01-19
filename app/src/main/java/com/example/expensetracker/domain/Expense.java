@@ -10,6 +10,8 @@ public class Expense {
     private User user;
     private Trip trip;
 
+    private String errorMessage;
+
     public Expense() {
     }
 
@@ -77,5 +79,13 @@ public class Expense {
 
     public void setTrip(Trip trip) {
         this.trip = trip;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
     }
 }

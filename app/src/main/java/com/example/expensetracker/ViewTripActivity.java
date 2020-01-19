@@ -3,6 +3,8 @@ package com.example.expensetracker;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
@@ -21,13 +23,18 @@ import com.example.expensetracker.domain.User;
 import com.example.expensetracker.helper.Session;
 import com.getbase.floatingactionbutton.FloatingActionButton;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.concurrent.ExecutionException;
 
 public class ViewTripActivity extends AppCompatActivity implements ExpenseDialogListener {
 
@@ -180,8 +187,7 @@ public class ViewTripActivity extends AppCompatActivity implements ExpenseDialog
                 ResponseEntity<Trip> currentTrip = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, Trip.class);
                 return currentTrip.getBody();
             } catch (Exception e) {
-                if (((HttpClientErrorException) e).getStatusCode().value() == 403)
-                {
+                if (((HttpClientErrorException) e).getStatusCode().value() == 403) {
                     Intent myIntent = new Intent(ViewTripActivity.this, LoginActivity.class);
                     startActivity(myIntent);
                 }
@@ -204,7 +210,7 @@ public class ViewTripActivity extends AppCompatActivity implements ExpenseDialog
         @Override
         protected Expense doInBackground(Expense... params) {
 
-            Expense expenseParam = params[0];
+            final Expense expenseParam = params[0];
             try {
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/expense";
                 HttpHeaders requestHeaders = new HttpHeaders();
@@ -214,12 +220,27 @@ public class ViewTripActivity extends AppCompatActivity implements ExpenseDialog
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
                 restTemplate.exchange(apiUrl, HttpMethod.POST, requestEntity, Expense.class);
 
-            } catch (Exception e) {
-                if (((HttpClientErrorException) e).getStatusCode().value() == 403)
-                {
+            } catch (HttpClientErrorException e) {
+                if (e.getStatusCode().value() == 403) {
                     Intent myIntent = new Intent(ViewTripActivity.this, LoginActivity.class);
                     startActivity(myIntent);
                 }
+            } catch (final HttpServerErrorException e) {
+                JSONObject jsonObject = null;
+                try {
+                    jsonObject = new JSONObject(e.getResponseBodyAsString());
+                } catch (JSONException ex) {
+                    ex.printStackTrace();
+                }
+                try {
+                    String errorM = jsonObject.getString("message");
+                    Expense expense = new Expense();
+                    expense.setErrorMessage(errorM);
+                    return expense;
+                } catch (JSONException ex) {
+                    ex.printStackTrace();
+                }
+            } catch (Exception e) {
                 Log.e("ERROR-ADD-EXPENSE", e.getMessage());
             }
             return expenseParam;
@@ -227,7 +248,6 @@ public class ViewTripActivity extends AppCompatActivity implements ExpenseDialog
 
         @Override
         protected void onPostExecute(Expense e) {
-            showToast(e.getExpensiveType() + " added successfully");
         }
     }
 
@@ -237,7 +257,17 @@ public class ViewTripActivity extends AppCompatActivity implements ExpenseDialog
         currentTrip.setId(idCurrentTrip);
 
         Expense e = new Expense(expenseType, productName, Float.valueOf(cost), selectedCurrency, Float.valueOf(percentage), currentUserObject, currentTrip);
-        new AddExpenseReqTask().execute(e);
+        try {
+            Expense expenseResponse = new AddExpenseReqTask().execute(e).get();
+            if (expenseResponse.getErrorMessage() != null) {
+                showToast(expenseResponse.getErrorMessage());
+            } else {
+                showToast(e.getExpensiveType() + " added successfully");
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
     }
 
 }
