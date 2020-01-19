@@ -71,8 +71,6 @@ public class MainActivity extends AppCompatActivity {
             currentUserObject = (User) intent.getSerializableExtra("currentUserObject");
             if (intent.getStringExtra("fromActivity").equals("LoginActivity")) {
                 Toast.makeText(MainActivity.this, "Logged in successfully!", Toast.LENGTH_SHORT).show();
-            } else if (intent.getStringExtra("fromActivity").equals("RegisterActivity")) {
-                Toast.makeText(MainActivity.this, "Registered successfully!", Toast.LENGTH_SHORT).show();
             }
         }
 

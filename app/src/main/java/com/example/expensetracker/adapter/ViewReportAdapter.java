@@ -2,25 +2,17 @@ package com.example.expensetracker.adapter;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.graphics.Paint;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.FragmentActivity;
 
 import com.example.expensetracker.R;
 import com.example.expensetracker.domain.Expense;
-import com.example.expensetracker.domain.ToDoObject;
-import com.example.expensetracker.domain.ui.main.PageViewModel;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class ViewReportAdapter extends ArrayAdapter<Expense> {
 

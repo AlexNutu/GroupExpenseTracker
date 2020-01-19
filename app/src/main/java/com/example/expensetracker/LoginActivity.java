@@ -36,6 +36,12 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
         session = new Session(getApplicationContext());
 
+        Intent intent = getIntent();
+        String fromActivity = intent.getStringExtra("fromActivity");
+        if (fromActivity != null && fromActivity.equals("RegisterActivity")) {
+            Toast.makeText(LoginActivity.this, "Registered successfully!", Toast.LENGTH_SHORT).show();
+        }
+
         createNotificationChannels();
 
         setActions();
