@@ -39,6 +39,7 @@ public class ViewTripActivity extends AppCompatActivity implements ExpenseDialog
     private TextView tripEndDateTV;
 
     private User currentUserObject;
+    private Integer idCurrentTrip;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,7 +77,7 @@ public class ViewTripActivity extends AppCompatActivity implements ExpenseDialog
                 // We are here from AddTripActivity
                 Toast.makeText(getApplicationContext(), "Trip added successfully!", Toast.LENGTH_SHORT).show();
             }
-            Integer idCurrentTrip = currentIntent.getIntExtra("tripId", 0);
+            idCurrentTrip = currentIntent.getIntExtra("tripId", 0);
             new GetTripReqTask().execute(idCurrentTrip);
         }
 
@@ -232,7 +233,10 @@ public class ViewTripActivity extends AppCompatActivity implements ExpenseDialog
 
     @Override
     public void addExpenseToDB(String productName, String cost, String selectedCurrency, String percentage, String expenseType) {
-        Expense e = new Expense(expenseType, productName, Float.valueOf(cost), selectedCurrency, Float.valueOf(percentage), currentUserObject, new Trip(1, "Nume", "Destinatie", null, null, null, null, null));
+        Trip currentTrip = new Trip();
+        currentTrip.setId(idCurrentTrip);
+
+        Expense e = new Expense(expenseType, productName, Float.valueOf(cost), selectedCurrency, Float.valueOf(percentage), currentUserObject, currentTrip);
         new AddExpenseReqTask().execute(e);
     }
 
