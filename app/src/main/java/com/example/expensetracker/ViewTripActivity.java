@@ -1,6 +1,7 @@
 package com.example.expensetracker;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -13,6 +14,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 
 import com.example.expensetracker.dialog.AddComplexExpenseDialog;
 import com.example.expensetracker.dialog.AddSimpleExpenseDialog;
@@ -114,8 +116,15 @@ public class ViewTripActivity extends AppCompatActivity implements ExpenseDialog
         });
     }
 
-    public void showToast(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    public void showToast(String message, String type) {
+        Toast toast = Toast.makeText(this, message, Toast.LENGTH_SHORT);
+        TextView tv = (TextView) toast.getView().findViewById(android.R.id.message);
+        if (type.equals("success")) {
+            tv.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.green));
+        } else {
+            tv.setTextColor(Color.RED);
+        }
+        toast.show();
     }
 
     private void configureBtnActions() {
@@ -260,9 +269,9 @@ public class ViewTripActivity extends AppCompatActivity implements ExpenseDialog
         try {
             Expense expenseResponse = new AddExpenseReqTask().execute(e).get();
             if (expenseResponse.getErrorMessage() != null) {
-                showToast(expenseResponse.getErrorMessage());
+                showToast(expenseResponse.getErrorMessage(), "error");
             } else {
-                showToast(e.getExpensiveType() + " added successfully");
+                showToast(e.getExpensiveType() + " added successfully", "success");
             }
         } catch (Exception ex) {
             ex.printStackTrace();
