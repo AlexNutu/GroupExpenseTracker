@@ -3,25 +3,32 @@ package com.example.expensetracker;
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.os.PersistableBundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.example.expensetracker.adapter.TripListAdapter;
 import com.example.expensetracker.domain.Trip;
 import com.example.expensetracker.domain.User;
 import com.example.expensetracker.helper.DatabaseHelper;
@@ -37,6 +44,11 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
+
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
@@ -45,13 +57,18 @@ public class MainActivity extends AppCompatActivity {
 
     private Session session;
 
-    // list of trips
-    private ListView lv;
-    // adapter for list view
-    private ArrayAdapter<String> adapter;
+    private ListView lvTripList;
+    //    private ArrayAdapter<String> adapterTripList;
     private EditText inputSearch;
 
     private User currentUserObject;
+    public MyHandler mHandler;
+    public View ftView;
+    public boolean isLoading = false;
+    private Integer lastTripSize = -1;
+    private Integer pageNumber;
+
+    private TripListAdapter tripListAdapter;
 
 
     @Override
@@ -63,8 +80,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        lvTripList = (ListView) findViewById(R.id.tripsListView);
+        inputSearch = (EditText) findViewById(R.id.searchET);
+        pageNumber = 0;
 
-        session = new Session(getApplicationContext());
 
         Intent intent = getIntent();
         if (intent != null) {
@@ -76,7 +95,20 @@ public class MainActivity extends AppCompatActivity {
 
         addTripButton();
 
-        new GetTripsReqTask().execute();
+        LayoutInflater li = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        ftView = li.inflate(R.layout.footer_view, null);
+        mHandler = new MyHandler();
+
+        session = new Session(getApplicationContext());
+
+
+        try {
+            Trip[] initialTripList = new GetTripsReqTask().execute().get();
+            configureAdapterAndListView(initialTripList);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
 
         // Start job for sending notifications
         scheduleJob(findViewById(android.R.id.content).getRootView());
@@ -95,30 +127,44 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void addTrips(final Trip[] tripsFromDB) {
-        final String[] tripStrings = new String[tripsFromDB.length];
-        for (int i = 0; i < tripsFromDB.length; i++) {
-            tripStrings[i] = tripsFromDB[i].getName();
-        }
-
-        lv = (ListView) findViewById(R.id.tripsListView);
-        inputSearch = (EditText) findViewById(R.id.searchET);
+    public void configureAdapterAndListView(final Trip[] tripsFromDB) {
 
         // adding item to list view
-        adapter = new ArrayAdapter<String>(this, R.layout.trip_list_item, R.id.trip_name, tripStrings);
-        lv.setAdapter(adapter);
+        //        adapterTripList = new ArrayAdapter<String>(this, R.layout.trip_list_item, R.id.trip_name_item, tripStrings);
+        tripListAdapter = new TripListAdapter(getApplicationContext(), tripsFromDB);
 
-        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        //        lvTripList.setAdapter(adapterTripList);
+        lvTripList.setAdapter(tripListAdapter);
+
+        lvTripList.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                if (view.getLastVisiblePosition() == totalItemCount - 1 && lvTripList.getCount() >= 10
+                        && lastTripSize != 0 && isLoading == false) {
+                    isLoading = true;
+                    Thread thread = new ThreadGetMoreData();
+                    thread.start();
+                    pageNumber++;
+                }
+            }
+        });
+
+        lvTripList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent myIntent = new Intent(MainActivity.this, ViewTripActivity.class);
                 myIntent.putExtra("currentUserObject", currentUserObject);
                 Integer tripIdToSend = -1;
-                for (int i = 0; i < tripsFromDB.length; i++) {
-                    if (tripsFromDB[i].getName().equals(adapter.getItem(position))) {
-                        tripIdToSend = tripsFromDB[i].getId();
-                    }
-                }
+                tripIdToSend = (Integer) view.getTag();
+//                for (int i = 0; i < tripsFromDB.length; i++) {
+//                    if (tripsFromDB[i].getName().equals(tripListAdapter.getItem(position))) {
+//                        tripIdToSend = tripsFromDB[i].getId();
+//                    }
+//                }
                 myIntent.putExtra("tripId", tripIdToSend);
                 startActivity(myIntent);
             }
@@ -131,9 +177,13 @@ public class MainActivity extends AppCompatActivity {
 
             }
 
+            //            @Override
+//            public void onTextChanged(CharSequence cs, int start, int before, int count) {
+//                MainActivity.this.tripListAdapter.filter.getFilter().filter(cs);
+//            }
             @Override
             public void onTextChanged(CharSequence cs, int start, int before, int count) {
-                MainActivity.this.adapter.getFilter().filter(cs);
+                MainActivity.this.tripListAdapter.getFilter().filter(cs);
             }
 
             @Override
@@ -143,39 +193,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private class GetTripsReqTask extends AsyncTask<Void, Void, Trip[]> {
-
-        @Override
-        protected Trip[] doInBackground(Void... voids) {
-
-            Trip[] tripsFromDB = {};
-            try {
-                String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/trip?search=members:" + currentUserObject.getId();
-                HttpHeaders requestHeaders = new HttpHeaders();
-                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
-                HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
-                RestTemplate restTemplate = new RestTemplate();
-                restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                ResponseEntity<Trip[]> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, Trip[].class);
-                tripsFromDB = responseEntity.getBody();
-
-            } catch (Exception e) {
-                if (((HttpClientErrorException) e).getStatusCode().value() == 403)
-                {
-                    Intent myIntent = new Intent(MainActivity.this, LoginActivity.class);
-                    startActivity(myIntent);
-                }
-                Log.e("ERROR-GET-TRIPS", e.getMessage());
-            }
-
-            return tripsFromDB;
-        }
-
-        @Override
-        protected void onPostExecute(Trip[] tripsFromDB) {
-            addTrips(tripsFromDB);
-        }
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -225,5 +242,89 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "Job canceled!");
     }
 
+    public class MyHandler extends Handler {
+        @Override
+        public void handleMessage(@NonNull Message msg) {
+            switch (msg.what) {
+                case 0:
+                    //Add loading view during search processing
+                    lvTripList.addFooterView(ftView);
+                    break;
+                case 1:
+                    //Update data adapter and UI
+                    tripListAdapter.addListItemToAdapter((ArrayList<Trip>) msg.obj);
+
+                    //Remove loading view after update listView
+                    lvTripList.removeFooterView(ftView);
+                    isLoading = false;
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    public ArrayList<Trip> getMoreTripsFromDB() {
+        try {
+            ArrayList<Trip> trips = new ArrayList<>(Arrays.asList(new GetTripsReqTask().execute().get()));
+            lastTripSize = trips.size();
+            return trips;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return new ArrayList<>();
+    }
+
+    public class ThreadGetMoreData extends Thread {
+
+        @Override
+        public void run() {
+            mHandler.sendEmptyMessage(0);
+
+            ArrayList<Trip> lsResult = getMoreTripsFromDB();
+
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            Message m = mHandler.obtainMessage(1, lsResult);
+            mHandler.sendMessage(m);
+        }
+    }
+
+    private class GetTripsReqTask extends AsyncTask<Void, Void, Trip[]> {
+
+        @Override
+        protected Trip[] doInBackground(Void... voids) {
+
+            Trip[] tripsFromDB = {};
+            try {
+                String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/trip?page=" + pageNumber + "&size=10&search=members:" + currentUserObject.getId();
+                HttpHeaders requestHeaders = new HttpHeaders();
+                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
+                HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
+                RestTemplate restTemplate = new RestTemplate();
+                restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+                ResponseEntity<Trip[]> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, Trip[].class);
+                tripsFromDB = responseEntity.getBody();
+
+            } catch (Exception e) {
+                if (((HttpClientErrorException) e).getStatusCode().value() == 403) {
+                    Intent myIntent = new Intent(MainActivity.this, LoginActivity.class);
+                    startActivity(myIntent);
+                }
+                Log.e("ERROR-GET-TRIPS", e.getMessage());
+            }
+
+            return tripsFromDB;
+        }
+
+        @Override
+        protected void onPostExecute(Trip[] tripsFromDB) {
+        }
+    }
 
 }
