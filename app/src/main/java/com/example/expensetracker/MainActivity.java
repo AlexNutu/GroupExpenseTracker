@@ -28,7 +28,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity  implements NetworkStateChecker.ConnectivityListener {
 
     // list of trips
     private ListView lv;
@@ -38,17 +38,22 @@ public class MainActivity extends AppCompatActivity {
 
     private EditText inputSearch;
 
+    private NetworkStateChecker networkStateChecker;
+
+    DatabaseHelper db;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        registerReceiver(new NetworkStateChecker(), new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+        networkStateChecker = new NetworkStateChecker(this);
+        registerReceiver(networkStateChecker, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
+        db = DatabaseHelper.getInstance(this);
         addTripButton();
-        new GetTripsReqTask().execute();
+        super.onCreate(savedInstanceState);
     }
+
 
     private void addTripButton() {
         FloatingActionButton addTrip = (FloatingActionButton) findViewById(R.id.floatingAddTripButton);
@@ -74,7 +79,6 @@ public class MainActivity extends AppCompatActivity {
         // adding item to list view
         adapter = new ArrayAdapter<String>(this, R.layout.list_item, R.id.trip_name, tripStrings);
         lv.setAdapter(adapter);
-
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -109,31 +113,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private class GetTripsReqTask extends AsyncTask<Void, Void, Trip[]> {
 
-        @Override
-        protected Trip[] doInBackground(Void... voids) {
-
-            Trip[] tripsFromDB = {};
-            try {
-                String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/trip";
-                RestTemplate restTemplate = new RestTemplate();
-                restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                ResponseEntity<Trip[]> responseEntity = restTemplate.getForEntity(apiUrl, Trip[].class);
-                tripsFromDB = responseEntity.getBody();
-
-            } catch (Exception e) {
-                Log.e("ERROR-GET-TRIPS", e.getMessage());
-            }
-
-            return tripsFromDB;
-        }
-
-        @Override
-        protected void onPostExecute(Trip[] tripsFromDB) {
-            addTrips(tripsFromDB);
-        }
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -156,4 +136,53 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
+    @Override
+    protected void onPause() {
+
+        super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        unregisterReceiver(networkStateChecker);
+        super.onDestroy();
+    }
+
+
+    @Override
+    public void onConnectivityStateChange() {
+        if(NetworkStateChecker.isConnected(this))
+            new GetTripsReqTask().execute();
+        else
+            addTrips(db.getAllTrips().toArray(new Trip[0]));
+    }
+
+    private class GetTripsReqTask extends AsyncTask<Void, Void, Trip[]> {
+
+        @Override
+        protected Trip[] doInBackground(Void... voids) {
+
+            Trip[] tripsFromDB = {};
+            try {
+                String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/trip";
+                RestTemplate restTemplate = new RestTemplate();
+                restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+                ResponseEntity<Trip[]> responseEntity = restTemplate.getForEntity(apiUrl, Trip[].class);
+                tripsFromDB = responseEntity.getBody();
+
+            } catch (Exception e) {
+                Log.e("ERROR-GET-TRIPS", e.getMessage());
+                tripsFromDB = db.getAllTrips().toArray(new Trip[0]);
+            }
+
+            return tripsFromDB;
+        }
+
+        @Override
+        protected void onPostExecute(Trip[] tripsFromDB) {
+            addTrips(tripsFromDB);
+        }
+    }
+
 }

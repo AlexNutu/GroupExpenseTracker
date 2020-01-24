@@ -1,6 +1,9 @@
 package com.example.expensetracker;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -16,13 +19,12 @@ import com.example.expensetracker.domain.Expense;
 import com.example.expensetracker.domain.ExpenseDialogListener;
 import com.example.expensetracker.domain.Trip;
 import com.example.expensetracker.domain.User;
+import com.example.expensetracker.helper.DatabaseHelper;
 import com.getbase.floatingactionbutton.FloatingActionButton;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
-import java.time.LocalDateTime;
 
 public class ViewTrip extends AppCompatActivity implements ExpenseDialogListener {
 
@@ -30,6 +32,7 @@ public class ViewTrip extends AppCompatActivity implements ExpenseDialogListener
     private TextView tripDestinationTV;
     private TextView tripStartDateTV;
     private TextView tripEndDateTV;
+    private DatabaseHelper db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +40,7 @@ public class ViewTrip extends AppCompatActivity implements ExpenseDialogListener
         setContentView(R.layout.activity_view_trip);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        db = DatabaseHelper.getInstance(this);
         tripTitleTV = (TextView) findViewById(R.id.tvViewTrip);
         tripDestinationTV = (TextView) findViewById(R.id.tripDestinationTV);
         tripStartDateTV = (TextView) findViewById(R.id.tripStartDateTV);
@@ -57,7 +61,13 @@ public class ViewTrip extends AppCompatActivity implements ExpenseDialogListener
                 Toast.makeText(getApplicationContext(), "Trip added successfully!", Toast.LENGTH_SHORT).show();
             }
             Integer idCurrentTrip = currentIntent.getIntExtra("tripId", 0);
-            new GetTripReqTask().execute(idCurrentTrip);
+            ConnectivityManager
+                    cm =(ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+            if(activeNetwork != null && activeNetwork.isConnectedOrConnecting())
+                new GetTripReqTask().execute(idCurrentTrip);
+            else
+                showDetails(db.getTripById(idCurrentTrip));
         }
 
         // Configure add expense buttons
@@ -95,6 +105,8 @@ public class ViewTrip extends AppCompatActivity implements ExpenseDialogListener
         ImageButton genReportBtn = (ImageButton) findViewById(R.id.genReportBtn);
         ImageButton toDoListBtn = (ImageButton) findViewById(R.id.toDoListBtn);
 
+        final Intent fromIntent = getIntent();
+
         viewMembersBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -107,8 +119,8 @@ public class ViewTrip extends AppCompatActivity implements ExpenseDialogListener
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(ViewTrip.this, ViewReport.class);
-                if (getIntent() != null) {
-                    intent.putExtra("tripId", getIntent().getIntExtra("tripId", 0));
+                if (fromIntent != null) {
+                    intent.putExtra("tripId", fromIntent.getIntExtra("tripId", 0));
                 }
                 startActivity(intent);
             }
@@ -118,6 +130,9 @@ public class ViewTrip extends AppCompatActivity implements ExpenseDialogListener
             @Override
             public void onClick(View v) {
                 Intent toDoListIntent = new Intent(ViewTrip.this, ToDoList.class);
+                if (fromIntent != null) {
+                    toDoListIntent.putExtra("tripId", fromIntent.getIntExtra("tripId", 0));
+                }
                 startActivity(toDoListIntent);
             }
         });
@@ -140,25 +155,31 @@ public class ViewTrip extends AppCompatActivity implements ExpenseDialogListener
         protected Trip doInBackground(Integer... params) {
 
             Integer idTrip = params[0];
+            Trip currentTrip = null;
             try {
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/trip/" + idTrip;
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                Trip currentTrip = restTemplate.getForObject(apiUrl, Trip.class);
+                currentTrip = restTemplate.getForObject(apiUrl, Trip.class);
                 return currentTrip;
             } catch (Exception e) {
                 Log.e("ERROR-GET-TRIP", e.getMessage());
+                currentTrip = db.getTripById(idTrip);
             }
-            return new Trip();
+            return currentTrip;
         }
 
         @Override
         protected void onPostExecute(Trip t) {
-            tripTitleTV.setText(t.getName());
-            tripDestinationTV.setText(t.getDestination());
-            tripStartDateTV.setText(t.getStartDate());
-            tripEndDateTV.setText(t.getEndDate());
+            showDetails(t);
         }
+    }
+
+    private void showDetails(Trip t){
+        tripTitleTV.setText(t.getName());
+        tripDestinationTV.setText(t.getDestination());
+        tripStartDateTV.setText(t.getStartDate());
+        tripEndDateTV.setText(t.getEndDate());
     }
 
     private class AddExpenseReqTask extends AsyncTask<Expense, Void, Expense> {
@@ -187,7 +208,7 @@ public class ViewTrip extends AppCompatActivity implements ExpenseDialogListener
 
     @Override
     public void addExpenseToDB(String productName, String cost, String selectedCurrency, String expenseType) {
-        Expense e = new Expense(expenseType, productName, Float.valueOf(cost), selectedCurrency, new User(1), new Trip(1, "Nume", "Destinatie", null, null, null, null, null,1));
+        Expense e = new Expense(expenseType, productName, Float.valueOf(cost), selectedCurrency, new User(1L, "", "", "","","",""), new Trip(1, "Nume", "Destinatie", null, null, null, null, null,0));
         new AddExpenseReqTask().execute(e);
     }
 

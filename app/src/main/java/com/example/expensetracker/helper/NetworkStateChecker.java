@@ -6,11 +6,19 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
+
 public class NetworkStateChecker extends BroadcastReceiver {
 
+    private final ConnectivityListener mConnectivityListener;
+
+    public NetworkStateChecker(ConnectivityListener connectivityListener){
+        mConnectivityListener = connectivityListener;
+    }
+
     //context and database helper object
-    private Context context;
+    private MySQLSynchronizer mySQLSynchronizer;
     private DatabaseHelper db;
+    private Context context;
 
 
     @Override
@@ -18,7 +26,9 @@ public class NetworkStateChecker extends BroadcastReceiver {
 
         this.context = context;
 
-        db = new DatabaseHelper(context);
+        this.mySQLSynchronizer = new MySQLSynchronizer(context, db);
+
+        db =  DatabaseHelper.getInstance(context);
 
         ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
@@ -27,22 +37,38 @@ public class NetworkStateChecker extends BroadcastReceiver {
         if (activeNetwork != null) {
             //if connected to wifi or mobile data plan
             if (activeNetwork.getType() == ConnectivityManager.TYPE_WIFI || activeNetwork.getType() == ConnectivityManager.TYPE_MOBILE) {
+                if(db.getLastSyncDB(1) == null)
+                    db.addOrUpdateSyncDB(1);
+                mySQLSynchronizer.synchronizeUsers();
+                mySQLSynchronizer.synchronizeTrips();
+                mySQLSynchronizer.synchronizeNotes();
+                mySQLSynchronizer.synchronizeDeleted();
 
-               /* //getting all the unsynced names
-                Cursor cursor = db.getUnsyncedNames();
-                if (cursor.moveToFirst()) {
-                    do {
-                        //calling the method to save the unsynced name to MySQL
-                        saveName(
-                                cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_ID)),
-                                cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_NAME))
-                        );
-                    } while (cursor.moveToNext());
-                }
-            }*/
             }
         }
 
+        mConnectivityListener.onConnectivityStateChange();
+
     }
+
+    public static boolean isConnected(Context context) {
+        ConnectivityManager
+                cm =(ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        return activeNetwork != null
+                && activeNetwork.isConnectedOrConnecting();
+    }
+
+    public interface ConnectivityListener {
+
+        /**
+         * Called when a data connection has been established. Can use to
+         * trigger any waiting behaviour
+         */
+        public void onConnectivityStateChange();
+
+    }
+
+
 
 }
