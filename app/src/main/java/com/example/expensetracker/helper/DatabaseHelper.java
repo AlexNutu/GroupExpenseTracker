@@ -1,12 +1,26 @@
 package com.example.expensetracker.helper;
 
+import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
+import com.example.expensetracker.domain.DeletedRecord;
+import com.example.expensetracker.domain.ToDoObjectWithTrip;
+import com.example.expensetracker.domain.Trip;
+import com.example.expensetracker.domain.User;
+import com.example.expensetracker.utils.DateTimeUtils;
+
+import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.Locale;
+import java.util.List;
+
+import static androidx.constraintlayout.widget.Constraints.TAG;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
@@ -26,6 +40,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String TABLE_EXPENSE = "expense";
     private static final String TABLE_NOTE= "note";
     private static final String TABLE_NOTIFICATION= "notification";
+    private static final String TABLE_SYNC_DB = "sync_db";
 
 
     // Common column names
@@ -66,6 +81,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String KEY_TITLE = "title";
     private static final String KEY_SENT = "sent";
 
+    // SYNC_DB Table - column names
+    private static final String KEY_LAST_SYNC_DATE = "last_sync_date";
 
     // Table Create Statements
     // USER_PROFILE table create statement
@@ -142,9 +159,40 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             + KEY_STATUS + " NUMERIC,"
             + " FOREIGN KEY ("+KEY_USER_ID+") REFERENCES "+TABLE_USER_PROFILE+"("+KEY_ID+"));";
 
-    public DatabaseHelper(Context context) {
+    // NOTIFICATION table create statement
+    private static final String CREATE_TABLE_SYNC_DB = "CREATE TABLE " + TABLE_SYNC_DB
+            + "(" + KEY_USER_ID + " INTEGER PRIMARY KEY,"
+            + KEY_LAST_SYNC_DATE + " DATETIME);";
+
+
+    private static DatabaseHelper sInstance;
+
+    public static synchronized DatabaseHelper getInstance(Context context) {
+        // Use the application context, which will ensure that you
+        // don't accidentally leak an Activity's context.
+        // See this article for more information: http://bit.ly/6LRzfx
+        if (sInstance == null) {
+            sInstance = new DatabaseHelper(context.getApplicationContext());
+        }
+        return sInstance;
+    }
+
+    /**
+     * Constructor should be private to prevent direct instantiation.
+     * Make a call to the static method "getInstance()" instead.
+     */
+    private DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
+
+    // Called when the database connection is being configured.
+    // Configure database settings for things like foreign key support, write-ahead logging, etc.
+    @Override
+    public void onConfigure(SQLiteDatabase db) {
+        super.onConfigure(db);
+    }
+
+
 
     @Override
     public void onCreate(SQLiteDatabase db) {
@@ -156,6 +204,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(CREATE_TABLE_USER_TRIP);
         db.execSQL(CREATE_TABLE_NOTE);
         db.execSQL(CREATE_TABLE_NOTIFICATION);
+        db.execSQL(CREATE_TABLE_SYNC_DB);
     }
 
     @Override
@@ -167,24 +216,336 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_USER_TRIP);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_NOTE);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_NOTIFICATION);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_SYNC_DB);
 
         // create new tables
         onCreate(db);
     }
 
 
-    // closing database
-    public void closeDB() {
+
+
+    // SYNC_DB
+
+    // get last synchronization date
+    public  Date getLastSyncDB(int id) {
         SQLiteDatabase db = this.getReadableDatabase();
-        if (db != null && db.isOpen()) db.close();
+
+        Cursor cursor = db.query(TABLE_SYNC_DB, new String[] {
+                        KEY_LAST_SYNC_DATE }, KEY_USER_ID + "=?",
+                new String[] { String.valueOf(id) }, null, null, null, null);
+        String datetime = null;
+        if (cursor != null) {
+            if(cursor.moveToNext())
+             datetime = cursor.getString(0);
+        }
+        Date date = null;
+        if(datetime != null) {
+            DateFormat iso8601Format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            try {
+                date = iso8601Format.parse(datetime);
+            } catch (ParseException e) {
+                Log.e(TAG, "Parsing ISO8601 datetime failed", e);
+            }
+        }
+        cursor.close();
+        return date;
     }
 
-    /**
-     * get datetime
-     * */
-    private String getDateTime() {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-        Date date = new Date();
-        return dateFormat.format(date);
+    public void addOrUpdateSyncDB(Integer id) {
+        // The database connection is cached so it's not expensive to call getWriteableDatabase() multiple times.
+        SQLiteDatabase db = getWritableDatabase();
+        long dbId = -1;
+
+        db.beginTransaction();
+        try {
+
+            ContentValues values = new ContentValues();
+            values.put(KEY_LAST_SYNC_DATE, DateTimeUtils.getDateTime());
+
+            // updating row
+            int rows = db.update(TABLE_SYNC_DB, values, KEY_USER_ID + " = ?",
+                    new String[] { String.valueOf(id) });
+            db.setTransactionSuccessful();
+
+            // Check if update succeeded
+            if (rows != 1) {
+                values = new ContentValues();
+                values.put(KEY_LAST_SYNC_DATE, DateTimeUtils.getFirstDateTime());
+                values.put(KEY_USER_ID, id);
+
+                // Notice how we haven't specified the primary key. SQLite auto increments the primary key column.
+                db.insertOrThrow(TABLE_SYNC_DB, null, values);
+                db.setTransactionSuccessful();
+
+            }
+        } catch (Exception e) {
+            Log.d(TAG, "Error while trying to add or update sync date");
+        } finally {
+            db.endTransaction();
+        }
+
+    }
+
+
+    // TRIP
+    // code to add the new trip
+    public void addTrip(Trip trip) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.beginTransaction();
+
+
+        try {
+            ContentValues values = new ContentValues();
+            values.put(KEY_ID, trip.getId());
+            values.put(KEY_CREATE_DATE, trip.getCreateDate());
+            values.put(KEY_MODIFY_DATE, trip.getModifyDate());
+            values.put(KEY_NAME, trip.getName());
+            values.put(KEY_DESTINATION, trip.getDestination());
+            values.put(KEY_START_DATE, trip.getStartDate());
+            values.put(KEY_END_DATE, trip.getEndDate());
+            values.put(KEY_STATUS, 1);
+
+            // Notice how we haven't specified the primary key. SQLite auto increments the primary key column.
+            db.insertOrThrow(TABLE_TRIP, null, values);
+            db.setTransactionSuccessful();
+        } catch (Exception e) {
+            Log.d(TAG, "Error while trying to add trip to database");
+        } finally {
+            db.endTransaction();
+        }
+
+    }
+
+
+    // update Trip
+
+    public void updateTrip(Trip trip) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.beginTransaction();
+
+
+        try {
+            ContentValues values = new ContentValues();
+            values.put(KEY_CREATE_DATE, trip.getCreateDate());
+            values.put(KEY_MODIFY_DATE, trip.getModifyDate());
+            values.put(KEY_NAME, trip.getName());
+            values.put(KEY_DESTINATION, trip.getDestination());
+            values.put(KEY_START_DATE, trip.getStartDate());
+            values.put(KEY_END_DATE, trip.getEndDate());
+            values.put(KEY_STATUS, 1);
+
+            // Notice how we haven't specified the primary key. SQLite auto increments the primary key column.
+           db.update(TABLE_TRIP, values, KEY_ID + " = ?",
+                    new String[] { String.valueOf(trip.getId())});
+            db.setTransactionSuccessful();
+        } catch (Exception e) {
+            Log.d(TAG, "Error while trying to update trip to database");
+        } finally {
+            db.endTransaction();
+        }
+
+    }
+
+    public List<Trip> getAllTrips() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String sql = "SELECT * FROM " + TABLE_TRIP ;
+        List<Trip> trips = new ArrayList<>();
+
+        Cursor cursor = db.rawQuery(sql, null);
+
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+            do {
+                Trip trip = new Trip();
+                trip.setId(cursor.getInt(cursor.getColumnIndex(KEY_ID)));
+                trip.setName(cursor.getString(cursor.getColumnIndex(KEY_NAME)));
+                trips.add(trip);
+            } while (cursor.moveToNext());
+        }
+
+        // close db connection
+        cursor.close();
+
+        return trips;
+    }
+
+    public List<Integer> getAllTripsId() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String sql = "SELECT id FROM " + TABLE_TRIP ;
+        List<Integer> tids = new ArrayList<>();
+
+        Cursor cursor = db.rawQuery(sql, null);
+
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+            do {
+                tids.add(cursor.getInt(cursor.getColumnIndex(KEY_ID)));
+            } while (cursor.moveToNext());
+        }
+
+        // close db connection
+        cursor.close();
+
+        return tids;
+    }
+
+    public Trip getTripById(Integer id){
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        String selectQuery = "SELECT  * FROM " + TABLE_TRIP + " WHERE "
+                + KEY_ID + " = " + id;
+
+        Log.e(LOG, selectQuery);
+
+        Cursor c = db.rawQuery(selectQuery, null);
+
+        if (c != null)
+            c.moveToFirst();
+
+        Trip trip = new Trip();
+        trip.setId(c.getInt(c.getColumnIndex(KEY_ID)));
+        trip.setName(c.getString(c.getColumnIndex(KEY_NAME)));
+        trip.setDestination(c.getString(c.getColumnIndex(KEY_DESTINATION)));
+        trip.setStartDate(c.getString(c.getColumnIndex(KEY_START_DATE)));
+        trip.setEndDate(c.getString(c.getColumnIndex(KEY_END_DATE)));
+        trip.setCreateDate(c.getString(c.getColumnIndex(KEY_CREATE_DATE)));
+
+        return trip;
+    }
+
+    // User
+    public void updateUser(User user) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.beginTransaction();
+
+        try {
+            ContentValues values = new ContentValues();
+            values.put(KEY_EMAIL, user.getEmail());
+            values.put(KEY_FIRST_NAME, user.getFirstName());
+            values.put(KEY_LAST_NAME, user.getLastName());
+           // values.put(KEY_STATUS, 1);
+            // Notice how we haven't specified the primary key. SQLite auto increments the primary key column.
+            db.update(TABLE_TRIP, values, KEY_ID + " = ?",
+                    new String[] { String.valueOf(user.getId())});
+            db.setTransactionSuccessful();
+        } catch (Exception e) {
+            Log.d(TAG, "Error while trying to add user to database");
+        } finally {
+            db.endTransaction();
+        }
+    }
+
+    public void addUser(User user) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.beginTransaction();
+
+        try {
+            ContentValues values = new ContentValues();
+            values.put(KEY_ID, user.getId());
+            values.put(KEY_EMAIL, user.getEmail());
+            values.put(KEY_FIRST_NAME, user.getFirstName());
+            values.put(KEY_LAST_NAME, user.getLastName());
+           // values.put(KEY_STATUS, 1);
+            // Notice how we haven't specified the primary key. SQLite auto increments the primary key column.
+            db.insertOrThrow(TABLE_USER_PROFILE, null, values);
+            db.setTransactionSuccessful();
+        } catch (Exception e) {
+            Log.d(TAG, "Error while trying to add user to database");
+        } finally {
+            db.endTransaction();
+        }
+    }
+
+
+    // USER_TRIP
+    public void addUserTrip(Integer userId, Integer tripId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.beginTransaction();
+
+        try {
+            ContentValues values = new ContentValues();
+            values.put(KEY_USER_ID, userId);
+            values.put(KEY_TRIP_ID, tripId);
+            values.put(KEY_STATUS, 1);
+            // Notice how we haven't specified the primary key. SQLite auto increments the primary key column.
+            db.insertOrThrow(TABLE_USER_TRIP, null, values);
+            db.setTransactionSuccessful();
+        } catch (Exception e) {
+            Log.d(TAG, "Error while trying to add trip member to database");
+        } finally {
+            db.endTransaction();
+        }
+    }
+
+    // DELETE RECORDS
+    public void deleteRecord(DeletedRecord record){
+
+        SQLiteDatabase db = getWritableDatabase();
+        db.beginTransaction();
+        try {
+            // Order of deletions is important when foreign key relationships exist.
+            db.delete(record.getTableName(), KEY_ID + " = ?",
+                    new String[] { String.valueOf(record.getRecordId())});
+
+            db.setTransactionSuccessful();
+        } catch (Exception e) {
+            Log.d(TAG, "Error while trying to delete records");
+        } finally {
+            db.endTransaction();
+        }
+    }
+
+
+    // NOTE
+    public void addNote(ToDoObjectWithTrip note) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.beginTransaction();
+
+        try {
+            ContentValues values = new ContentValues();
+            values.put(KEY_USER_ID, note.getUser().getId());
+            values.put(KEY_TRIP_ID, note.getTrip().getId());
+            values.put(KEY_ID, note.getId());
+            values.put(KEY_MESSAGE, note.getMessage());
+            values.put(KEY_CREATE_DATE, note.getCreateDate());
+            values.put(KEY_MODIFY_DATE, note.getModifyDate());
+            values.put(KEY_MESSAGE, note.getMessage());
+            values.put(KEY_STATUS, 1);
+            // Notice how we haven't specified the primary key. SQLite auto increments the primary key column.
+            db.insertOrThrow(TABLE_NOTE, null, values);
+            db.setTransactionSuccessful();
+        } catch (Exception e) {
+            Log.d(TAG, "Error while trying to add note to database");
+        } finally {
+            db.endTransaction();
+        }
+    }
+
+    public void updateNote(ToDoObjectWithTrip note) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.beginTransaction();
+
+        try {
+            ContentValues values = new ContentValues();
+            values.put(KEY_USER_ID, note.getUser().getId());
+            values.put(KEY_TRIP_ID, note.getTrip().getId());
+            values.put(KEY_MESSAGE, note.getMessage());
+            values.put(KEY_CREATE_DATE, note.getCreateDate());
+            values.put(KEY_MODIFY_DATE, note.getModifyDate());
+            values.put(KEY_MESSAGE, note.getMessage());
+            values.put(KEY_STATUS, 1);
+            // Notice how we haven't specified the primary key. SQLite auto increments the primary key column.
+            db.update(TABLE_NOTE, values, KEY_ID + " = ?",
+                    new String[] { String.valueOf(note.getId())});
+            db.setTransactionSuccessful();
+        } catch (Exception e) {
+            Log.d(TAG, "Error while trying to update note to database");
+        } finally {
+            db.endTransaction();
+        }
     }
 }
+
+
+

@@ -5,6 +5,8 @@ import android.app.job.JobScheduler;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -34,6 +36,7 @@ import com.example.expensetracker.domain.User;
 import com.example.expensetracker.helper.DatabaseHelper;
 import com.example.expensetracker.service.NotificationJobService;
 import com.example.expensetracker.helper.Session;
+import com.example.expensetracker.helper.NetworkStateChecker;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.springframework.http.HttpEntity;
@@ -49,11 +52,12 @@ import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity  implements NetworkStateChecker.ConnectivityListener {
 
     private static final String TAG = "MainActivity";
 
     DatabaseHelper db;
+    //private NetworkStateChecker networkStateChecker;
 
     private Session session;
 
@@ -73,17 +77,20 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+//        networkStateChecker = new NetworkStateChecker(this);
+//        registerReceiver(networkStateChecker, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+        db = DatabaseHelper.getInstance(this);
+        //db.getReadableDatabase();
 
         super.onCreate(savedInstanceState);
-        db = new DatabaseHelper(getApplicationContext());
-        db.getReadableDatabase();
+
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
         lvTripList = (ListView) findViewById(R.id.tripsListView);
         inputSearch = (EditText) findViewById(R.id.searchET);
         pageNumber = 0;
-
 
         Intent intent = getIntent();
         if (intent != null) {
@@ -102,16 +109,19 @@ public class MainActivity extends AppCompatActivity {
         session = new Session(getApplicationContext());
 
 
-        try {
-            Trip[] initialTripList = new GetTripsReqTask().execute().get();
-            configureAdapterAndListView(initialTripList);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
+        attachTripsFromServerDB();
 
         // Start job for sending notifications
         scheduleJob(findViewById(android.R.id.content).getRootView());
+    }
+
+    private void attachTripsFromServerDB() {
+        try {
+            Trip[] tripListFromServer = new GetTripsReqTask().execute().get();
+            configureAdapterAndListView(tripListFromServer);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void addTripButton() {
@@ -154,17 +164,13 @@ public class MainActivity extends AppCompatActivity {
         });
 
         lvTripList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent myIntent = new Intent(MainActivity.this, ViewTripActivity.class);
                 myIntent.putExtra("currentUserObject", currentUserObject);
                 Integer tripIdToSend = -1;
                 tripIdToSend = (Integer) view.getTag();
-//                for (int i = 0; i < tripsFromDB.length; i++) {
-//                    if (tripsFromDB[i].getName().equals(tripListAdapter.getItem(position))) {
-//                        tripIdToSend = tripsFromDB[i].getId();
-//                    }
-//                }
                 myIntent.putExtra("tripId", tripIdToSend);
                 startActivity(myIntent);
             }
@@ -177,10 +183,6 @@ public class MainActivity extends AppCompatActivity {
 
             }
 
-            //            @Override
-//            public void onTextChanged(CharSequence cs, int start, int before, int count) {
-//                MainActivity.this.tripListAdapter.filter.getFilter().filter(cs);
-//            }
             @Override
             public void onTextChanged(CharSequence cs, int start, int before, int count) {
                 MainActivity.this.tripListAdapter.getFilter().filter(cs);
@@ -298,6 +300,26 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onPause() {
+
+        super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+//        unregisterReceiver(networkStateChecker);
+        super.onDestroy();
+    }
+
+    @Override
+    public void onConnectivityStateChange() {
+        if(NetworkStateChecker.isConnected(this))
+            attachTripsFromServerDB();
+        else
+            configureAdapterAndListView(db.getAllTrips().toArray(new Trip[0]));
+    }
+
     private class GetTripsReqTask extends AsyncTask<Void, Void, Trip[]> {
 
         @Override
@@ -320,6 +342,7 @@ public class MainActivity extends AppCompatActivity {
                     startActivity(myIntent);
                 }
                 Log.e("ERROR-GET-TRIPS", e.getMessage());
+                tripsFromDB = db.getAllTrips().toArray(new Trip[0]);
             }
 
             return tripsFromDB;

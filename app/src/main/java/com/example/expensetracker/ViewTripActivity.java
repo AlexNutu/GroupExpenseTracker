@@ -1,7 +1,10 @@
 package com.example.expensetracker;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -31,12 +34,14 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+
+import com.example.expensetracker.helper.DatabaseHelper;
+
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.concurrent.ExecutionException;
 
 public class ViewTripActivity extends AppCompatActivity implements ExpenseDialogListener {
 
@@ -46,6 +51,7 @@ public class ViewTripActivity extends AppCompatActivity implements ExpenseDialog
     private TextView tripDestinationTV;
     private TextView tripStartDateTV;
     private TextView tripEndDateTV;
+    private DatabaseHelper db;
 
     private User currentUserObject;
     private Integer idCurrentTrip;
@@ -59,6 +65,7 @@ public class ViewTripActivity extends AppCompatActivity implements ExpenseDialog
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        db = DatabaseHelper.getInstance(this);
         tripTitleTV = (TextView) findViewById(R.id.tvViewTrip);
         tripDestinationTV = (TextView) findViewById(R.id.tripDestinationTV);
         tripStartDateTV = (TextView) findViewById(R.id.tripStartDateTV);
@@ -87,7 +94,13 @@ public class ViewTripActivity extends AppCompatActivity implements ExpenseDialog
                 Toast.makeText(getApplicationContext(), "Trip added successfully!", Toast.LENGTH_SHORT).show();
             }
             idCurrentTrip = currentIntent.getIntExtra("tripId", 0);
-            new GetTripReqTask().execute(idCurrentTrip);
+            ConnectivityManager
+                    cm = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+            if (activeNetwork != null && activeNetwork.isConnectedOrConnecting())
+                new GetTripReqTask().execute(idCurrentTrip);
+            else
+                showDetails(db.getTripById(idCurrentTrip));
         }
 
         // Configure add expense buttons
@@ -186,6 +199,7 @@ public class ViewTripActivity extends AppCompatActivity implements ExpenseDialog
         protected Trip doInBackground(Integer... params) {
 
             Integer idTrip = params[0];
+            Trip currentTrip = null;
             try {
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/trip/" + idTrip;
                 HttpHeaders requestHeaders = new HttpHeaders();
@@ -193,25 +207,32 @@ public class ViewTripActivity extends AppCompatActivity implements ExpenseDialog
                 HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                ResponseEntity<Trip> currentTrip = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, Trip.class);
-                return currentTrip.getBody();
+                ResponseEntity<Trip> tripResponse = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, Trip.class);
+                currentTrip = tripResponse.getBody();
+
+                return currentTrip;
             } catch (Exception e) {
                 if (((HttpClientErrorException) e).getStatusCode().value() == 403) {
                     Intent myIntent = new Intent(ViewTripActivity.this, LoginActivity.class);
                     startActivity(myIntent);
                 }
                 Log.e("ERROR-GET-TRIP", e.getMessage());
+                currentTrip = db.getTripById(idTrip);
             }
-            return new Trip();
+            return currentTrip;
         }
 
         @Override
         protected void onPostExecute(Trip t) {
-            tripTitleTV.setText(t.getName());
-            tripDestinationTV.setText(t.getDestination());
-            tripStartDateTV.setText(t.getStartDate());
-            tripEndDateTV.setText(t.getEndDate());
+            showDetails(t);
         }
+    }
+
+    private void showDetails(Trip t) {
+        tripTitleTV.setText(t.getName());
+        tripDestinationTV.setText(t.getDestination());
+        tripStartDateTV.setText(t.getStartDate());
+        tripEndDateTV.setText(t.getEndDate());
     }
 
     private class AddExpenseReqTask extends AsyncTask<Expense, Void, Expense> {
@@ -276,7 +297,5 @@ public class ViewTripActivity extends AppCompatActivity implements ExpenseDialog
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-
     }
-
 }

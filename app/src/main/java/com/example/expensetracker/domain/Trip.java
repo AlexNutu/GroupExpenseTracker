@@ -12,12 +12,13 @@ public class Trip {
     private String createDate;
     private String modifyDate;
     private List<User> members;
+    private Integer status;
 
 
     public Trip() {
     }
 
-    public Trip(Integer id, String name, String destination, String startDate, String endDate, String createDate, String modifyDate, List<User> members) {
+    public Trip(Integer id, String name, String destination, String startDate, String endDate, String createDate, String modifyDate, List<User> members, Integer status) {
         this.id = id;
         this.name = name;
         this.destination = destination;
@@ -26,6 +27,7 @@ public class Trip {
         this.createDate = createDate;
         this.modifyDate = modifyDate;
         this.members = members;
+        this.status = status;
     }
 
     public Integer getId() {
@@ -91,4 +93,8 @@ public class Trip {
     public void setMembers(List<User> members) {
         this.members = members;
     }
+
+    public Integer getStatus() { return status; }
+
+    public void setStatus(Integer status) { this.status = status; }
 }

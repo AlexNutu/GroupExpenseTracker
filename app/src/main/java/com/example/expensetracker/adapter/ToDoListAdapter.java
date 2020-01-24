@@ -17,18 +17,18 @@ import androidx.fragment.app.FragmentActivity;
 import com.example.expensetracker.R;
 import com.example.expensetracker.dialog.CheckToDoDialog;
 import com.example.expensetracker.dialog.DeleteToDoDialog;
-import com.example.expensetracker.domain.ToDoObject;
+import com.example.expensetracker.domain.ToDoObjectWithTrip;
 
 import java.util.ArrayList;
 
-public class ToDoListAdapter extends ArrayAdapter<ToDoObject> {
+public class ToDoListAdapter extends ArrayAdapter<ToDoObjectWithTrip> {
 
     private static final String TAG = "ToDoListAdapter";
     private Context mContext;
     private int mResource;
     private Integer idTrip;
 
-    public ToDoListAdapter(@NonNull Context context, int resource, @NonNull ArrayList<ToDoObject> objects, Integer idTripParam) {
+    public ToDoListAdapter(@NonNull Context context, int resource, @NonNull ArrayList<ToDoObjectWithTrip> objects, Integer idTripParam) {
         super(context, resource, objects);
         mContext = context;
         mResource = resource;
@@ -39,12 +39,13 @@ public class ToDoListAdapter extends ArrayAdapter<ToDoObject> {
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-        final Long idNote = getItem(position).getIdNote();
+        final Long idNote = getItem(position).getId();
         String message = getItem(position).getMessage();
         Boolean approved = getItem(position).getApproved();
         String name = getItem(position).getUser().getFirstName() + " " + getItem(position).getUser().getLastName();
         String createdDate = getItem(position).getCreateDate();
-        final ToDoObject toDoCurrent = new ToDoObject(idNote, approved, message, getItem(position).getUser(), createdDate);
+        String modifiedDate = getItem(position).getModifyDate();
+        final ToDoObjectWithTrip toDoCurrent = new ToDoObjectWithTrip(idNote, approved, message, getItem(position).getUser(), null, createdDate, modifiedDate);
 
         LayoutInflater inflater = LayoutInflater.from(mContext);
         convertView = inflater.inflate(mResource, parent, false);
@@ -96,7 +97,7 @@ public class ToDoListAdapter extends ArrayAdapter<ToDoObject> {
         deleteToDoDialog.show(((FragmentActivity) mContext).getSupportFragmentManager(), "add todo dialog");
     }
 
-    public void openUpdateDialog(ToDoObject toDoCurrent) {
+    public void openUpdateDialog(ToDoObjectWithTrip toDoCurrent) {
         CheckToDoDialog checkToDoDialog = new CheckToDoDialog(toDoCurrent, idTrip);
         checkToDoDialog.show(((FragmentActivity) mContext).getSupportFragmentManager(), "update todo dialog");
     }

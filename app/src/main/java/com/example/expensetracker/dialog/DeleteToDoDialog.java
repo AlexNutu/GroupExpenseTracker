@@ -19,7 +19,7 @@ import androidx.appcompat.app.AppCompatDialogFragment;
 
 import com.example.expensetracker.R;
 import com.example.expensetracker.adapter.ToDoListAdapter;
-import com.example.expensetracker.domain.ToDoObject;
+import com.example.expensetracker.domain.ToDoObjectWithTrip;
 import com.example.expensetracker.helper.Session;
 
 import org.springframework.http.HttpEntity;
@@ -90,7 +90,7 @@ public class DeleteToDoDialog extends AppCompatDialogFragment {
                 HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                restTemplate.exchange(apiUrl, HttpMethod.DELETE, requestEntity, ToDoObject.class);
+                restTemplate.exchange(apiUrl, HttpMethod.DELETE, requestEntity, ToDoObjectWithTrip.class);
 
             } catch (Exception e) {
                 Log.e("ERROR-DELETE-TODO", e.getMessage());
@@ -106,14 +106,14 @@ public class DeleteToDoDialog extends AppCompatDialogFragment {
         }
     }
 
-    private void setListViewItems(ToDoObject[] toDoFromDB) {
+    private void setListViewItems(ToDoObjectWithTrip[] toDoFromDB) {
 
         ListView mListView = (ListView) ((Activity) activityContext).findViewById(R.id.toDoLV);
 
-        ArrayList<ToDoObject> toDoObjectList = new ArrayList<>();
+        ArrayList<ToDoObjectWithTrip> toDoObjectList = new ArrayList<>();
         for (int i = 0; i < toDoFromDB.length; i++) {
-            ToDoObject t = toDoFromDB[i];
-            toDoObjectList.add(new ToDoObject(t.getIdNote(), t.getApproved(), t.getMessage(), t.getUser(), t.getCreateDate()));
+            ToDoObjectWithTrip t = toDoFromDB[i];
+            toDoObjectList.add(new ToDoObjectWithTrip(t.getId(), t.getApproved(), t.getMessage(), t.getUser(),t.getTrip(), t.getCreateDate(), t.getModifyDate()));
         }
 
         // Adding elements into List View
@@ -121,12 +121,12 @@ public class DeleteToDoDialog extends AppCompatDialogFragment {
         mListView.setAdapter(toDoListAdapter);
     }
 
-    private class GetToDosReqTask extends AsyncTask<Integer, Void, ToDoObject[]> {
+    private class GetToDosReqTask extends AsyncTask<Integer, Void, ToDoObjectWithTrip[]> {
 
         @Override
-        protected ToDoObject[] doInBackground(Integer... params) {
+        protected ToDoObjectWithTrip[] doInBackground(Integer... params) {
 
-            ToDoObject[] toDoFromDB = {};
+            ToDoObjectWithTrip[] toDoFromDB = {};
             int tripIdParam = params[0];
             try {
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/note?search=trip:" + tripIdParam;
@@ -135,7 +135,7 @@ public class DeleteToDoDialog extends AppCompatDialogFragment {
                 HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                ResponseEntity<ToDoObject[]> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, ToDoObject[].class);
+                ResponseEntity<ToDoObjectWithTrip[]> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, ToDoObjectWithTrip[].class);
                 toDoFromDB = responseEntity.getBody();
 
             } catch (Exception e) {
@@ -146,7 +146,7 @@ public class DeleteToDoDialog extends AppCompatDialogFragment {
         }
 
         @Override
-        protected void onPostExecute(ToDoObject[] toDoFromDB) {
+        protected void onPostExecute(ToDoObjectWithTrip[] toDoFromDB) {
             setListViewItems(toDoFromDB);
         }
     }

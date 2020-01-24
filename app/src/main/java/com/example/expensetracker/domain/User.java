@@ -5,6 +5,8 @@ import java.io.Serializable;
 @SuppressWarnings("serial") //With this annotation we are going to hide compiler warnings
 public class User implements Serializable {
     private Long id;
+    private String createDate;
+    private String modifyDate;
     private String firstName;
     private String lastName;
     private String email;
@@ -17,6 +19,8 @@ public class User implements Serializable {
 
     public User(Long id, String firstName, String lastName, String email, String password, Boolean receiveNotifications, String errorMessage) {
         this.id = id;
+        this.createDate = createDate;
+        this.modifyDate = modifyDate;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
@@ -57,6 +61,22 @@ public class User implements Serializable {
         this.email = email;
     }
 
+    public String getCreateDate() {
+        return createDate;
+    }
+
+    public void setCreateDate(String createDate) {
+        this.createDate = createDate;
+    }
+
+    public String getModifyDate() {
+        return modifyDate;
+    }
+
+    public void setModifyDate(String modifyDate) {
+        this.modifyDate = modifyDate;
+    }
+
     public String getPassword() {
         return password;
     }
@@ -80,4 +100,6 @@ public class User implements Serializable {
     public void setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
     }
+
+    public String getFirstLastName(){ return this.firstName + " " + this.lastName;}
 }

@@ -20,7 +20,8 @@ import androidx.appcompat.app.AppCompatDialogFragment;
 
 import com.example.expensetracker.R;
 import com.example.expensetracker.adapter.ToDoListAdapter;
-import com.example.expensetracker.domain.ToDoObject;
+import com.example.expensetracker.domain.ToDoObjectWithTrip;
+import com.example.expensetracker.domain.ToDoObjectWithTrip;
 import com.example.expensetracker.helper.Session;
 
 import org.springframework.http.HttpEntity;
@@ -36,14 +37,14 @@ public class CheckToDoDialog extends AppCompatDialogFragment {
 
     private TextView toDoQuestionTV;
     private Integer tripId;
-    private ToDoObject toUpdateToDo;
+    private ToDoObjectWithTrip toUpdateToDo;
     private Context activityContext;
 
     private Session session;
 
-    public CheckToDoDialog(ToDoObject toDoObject, Integer tripIdParam) {
+    public CheckToDoDialog(ToDoObjectWithTrip ToDoObjectWithTrip, Integer tripIdParam) {
         this.tripId = tripIdParam;
-        this.toUpdateToDo = toDoObject;
+        this.toUpdateToDo = ToDoObjectWithTrip;
     }
 
     @Override
@@ -87,13 +88,13 @@ public class CheckToDoDialog extends AppCompatDialogFragment {
         return builder.create();
     }
 
-    private class UpdateToDoReqTask extends AsyncTask<ToDoObject, Void, Void> {
+    private class UpdateToDoReqTask extends AsyncTask<ToDoObjectWithTrip, Void, Void> {
 
         @Override
-        protected Void doInBackground(ToDoObject... params) {
+        protected Void doInBackground(ToDoObjectWithTrip... params) {
 
-            ToDoObject toDoParam = params[0];
-            long noteId = toDoParam.getIdNote();
+            ToDoObjectWithTrip toDoParam = params[0];
+            long noteId = toDoParam.getId();
             try {
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/note/" + noteId;
                 HttpHeaders requestHeaders = new HttpHeaders();
@@ -101,7 +102,7 @@ public class CheckToDoDialog extends AppCompatDialogFragment {
                 HttpEntity requestEntity = new HttpEntity(toDoParam, requestHeaders);
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                restTemplate.exchange(apiUrl, HttpMethod.PUT, requestEntity, ToDoObject.class);
+                restTemplate.exchange(apiUrl, HttpMethod.PUT, requestEntity, ToDoObjectWithTrip.class);
             } catch (Exception e) {
                 Log.e("ERROR-UPDATE-TODO", e.getMessage());
             }
@@ -116,27 +117,27 @@ public class CheckToDoDialog extends AppCompatDialogFragment {
         }
     }
 
-    private void setListViewItems(ToDoObject[] toDoFromDB) {
+    private void setListViewItems(ToDoObjectWithTrip[] toDoFromDB) {
 
         ListView mListView = (ListView) ((Activity) activityContext).findViewById(R.id.toDoLV);
 
-        ArrayList<ToDoObject> toDoObjectList = new ArrayList<>();
+        ArrayList<ToDoObjectWithTrip> ToDoObjectWithTripList = new ArrayList<>();
         for (int i = 0; i < toDoFromDB.length; i++) {
-            ToDoObject t = toDoFromDB[i];
-            toDoObjectList.add(new ToDoObject(t.getIdNote(), t.getApproved(), t.getMessage(), t.getUser(), t.getCreateDate()));
+            ToDoObjectWithTrip t = toDoFromDB[i];
+            ToDoObjectWithTripList.add(new ToDoObjectWithTrip(t.getId(), t.getApproved(), t.getMessage(), t.getUser(), t.getTrip(), t.getCreateDate(), t.getModifyDate()));
         }
 
         // Adding elements into List View
-        ToDoListAdapter toDoListAdapter = new ToDoListAdapter(activityContext, R.layout.adapter_todo_view_layout, toDoObjectList, tripId);
+        ToDoListAdapter toDoListAdapter = new ToDoListAdapter(activityContext, R.layout.adapter_todo_view_layout, ToDoObjectWithTripList, tripId);
         mListView.setAdapter(toDoListAdapter);
     }
 
-    private class GetToDosReqTask extends AsyncTask<Integer, Void, ToDoObject[]> {
+    private class GetToDosReqTask extends AsyncTask<Integer, Void, ToDoObjectWithTrip[]> {
 
         @Override
-        protected ToDoObject[] doInBackground(Integer... params) {
+        protected ToDoObjectWithTrip[] doInBackground(Integer... params) {
 
-            ToDoObject[] toDoFromDB = {};
+            ToDoObjectWithTrip[] toDoFromDB = {};
             int tripIdParam = params[0];
             try {
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/note?search=trip:" + tripIdParam;
@@ -145,7 +146,7 @@ public class CheckToDoDialog extends AppCompatDialogFragment {
                 HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                ResponseEntity<ToDoObject[]> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, ToDoObject[].class);
+                ResponseEntity<ToDoObjectWithTrip[]> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, ToDoObjectWithTrip[].class);
                 toDoFromDB = responseEntity.getBody();
 
             } catch (Exception e) {
@@ -156,7 +157,7 @@ public class CheckToDoDialog extends AppCompatDialogFragment {
         }
 
         @Override
-        protected void onPostExecute(ToDoObject[] toDoFromDB) {
+        protected void onPostExecute(ToDoObjectWithTrip[] toDoFromDB) {
             setListViewItems(toDoFromDB);
         }
     }

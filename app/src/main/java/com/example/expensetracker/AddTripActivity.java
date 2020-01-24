@@ -118,7 +118,8 @@ public class AddTripActivity extends AppCompatActivity {
                 List<User> membersList = new ArrayList<>();
                 membersList.add(currentUserObject);
                 Trip tripToInsert =
-                        new Trip(null, tripNameString, tripDestinationString, tripStartDateString, tripEndDateString, null, null, membersList);
+                        new Trip(null, tripNameString, tripDestinationString, tripStartDateString, tripEndDateString, null, null, membersList, null);
+
                 Integer insertedTripId = -1;
                 try {
                     insertedTripId = new AddTripReqTask().execute(tripToInsert).get();

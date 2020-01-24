@@ -40,6 +40,11 @@
         <service
             android:name=".service.NotificationJobService"
             android:permission="android.permission.BIND_JOB_SERVICE" />
+        <receiver android:name=".helper.NetworkStateChecker">
+            <intent-filter>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

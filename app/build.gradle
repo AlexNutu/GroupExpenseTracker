@@ -45,4 +45,6 @@ dependencies {
 
     // Added for Searchable Spinner
     implementation 'com.github.MdFarhanRaja:SearchableSpinner:2.0'
+
+    implementation 'com.android.volley:volley:1.1.0'
 }

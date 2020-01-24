@@ -2,7 +2,7 @@
 <project version="4">
   <component name="DBNavigator.Project.DataEditorManager">
     <record-view-column-sorting-type value="BY_INDEX" />
-    <value-preview-text-wrapping value="true" />
+    <value-preview-text-wrapping value="false" />
     <value-preview-pinned value="false" />
   </component>
   <component name="DBNavigator.Project.DataExportManager">
@@ -24,21 +24,29 @@
     <autoscroll-from-editor value="true" />
     <show-object-properties value="true" />
     <loaded-nodes>
-      <connection connection-id="3090f913-ffc1-4931-9efb-8f1e7403521d">
-        <schema name="main" object-types="view, dataset trigger, constraint, column, table, index" />
+      <connection connection-id="dc4c0cd8-f7bf-4ef6-8833-072493213aa8">
+        <schema name="main" object-types="constraint, dataset trigger, table, view, column" />
       </connection>
     </loaded-nodes>
   </component>
   <component name="DBNavigator.Project.DatabaseConsoleManager">
-    <connection id="3090f913-ffc1-4931-9efb-8f1e7403521d">
-      <console name="Connection" type="STANDARD" schema="main" session="Main" />
+    <connection id="dc4c0cd8-f7bf-4ef6-8833-072493213aa8">
+      <console name="Connection" type="STANDARD" schema="main" session="Main"><![CDATA[select * from sync_db
+
+select * from trip;
+
+select * from user_profile;
+
+select * from user_trip;
+
+select * from note;]]></console>
     </connection>
   </component>
   <component name="DBNavigator.Project.DatabaseFileManager">
     <open-files />
   </component>
   <component name="DBNavigator.Project.DatabaseSessionManager">
-    <connection id="3090f913-ffc1-4931-9efb-8f1e7403521d" />
+    <connection id="dc4c0cd8-f7bf-4ef6-8833-072493213aa8" />
   </component>
   <component name="DBNavigator.Project.EditorStateManager">
     <last-used-providers />
@@ -63,7 +71,7 @@
   </component>
   <component name="DBNavigator.Project.Settings">
     <connections>
-      <connection id="3090f913-ffc1-4931-9efb-8f1e7403521d" active="true">
+      <connection id="dc4c0cd8-f7bf-4ef6-8833-072493213aa8" active="true">
         <database>
           <name value="Connection" />
           <description value="" />
