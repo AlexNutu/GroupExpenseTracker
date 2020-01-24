@@ -9,17 +9,19 @@ public class User implements Serializable {
     private String lastName;
     private String email;
     private String password;
+    private Boolean receiveNotifications;
     private String errorMessage;
 
     public User() {
     }
 
-    public User(Long id, String firstName, String lastName, String email, String password, String errorMessage) {
+    public User(Long id, String firstName, String lastName, String email, String password, Boolean receiveNotifications, String errorMessage) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.password = password;
+        this.receiveNotifications = receiveNotifications;
         this.errorMessage = errorMessage;
     }
 
@@ -63,23 +65,19 @@ public class User implements Serializable {
         this.password = password;
     }
 
+    public Boolean getReceiveNotifications() {
+        return receiveNotifications;
+    }
+
+    public void setReceiveNotifications(Boolean receiveNotifications) {
+        this.receiveNotifications = receiveNotifications;
+    }
+
     public String getErrorMessage() {
         return errorMessage;
     }
 
     public void setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
-    }
-
-    @Override
-    public String toString() {
-        return "User{" +
-                "id=" + id +
-                ", firstName='" + firstName + '\'' +
-                ", lastName='" + lastName + '\'' +
-                ", email='" + email + '\'' +
-                ", password='" + password + '\'' +
-                ", errorMessage='" + errorMessage + '\'' +
-                '}';
     }
 }

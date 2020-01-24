@@ -3,6 +3,7 @@ package com.example.expensetracker.service;
 import android.app.Notification;
 import android.app.job.JobParameters;
 import android.app.job.JobService;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
@@ -12,11 +13,20 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
 import com.example.expensetracker.R;
+import com.example.expensetracker.SettingsActivity;
 import com.example.expensetracker.domain.NotificationDB;
+import com.example.expensetracker.domain.User;
+import com.example.expensetracker.helper.Session;
 
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.concurrent.ExecutionException;
 
 import static com.example.expensetracker.LoginActivity.CHANNEL_1_ID;
 
@@ -25,15 +35,17 @@ public class NotificationJobService extends JobService {
     private static final String TAG = "NotificationJobService";
 
     private Long currentUserId;
+    private User currentUserObject;
     private boolean jobCanceled = false;
     private NotificationManagerCompat notificationManager;
+
+    private Session session;
 
 
     @Override
     public boolean onStartJob(JobParameters params) {
         Log.d(TAG, "Job Started");
         doBackgroundWork(params);
-
         return true;
     }
 
@@ -43,34 +55,44 @@ public class NotificationJobService extends JobService {
             @Override
             public void run() {
 
+                session = new Session(getApplicationContext());
+
                 for (int i = 0; i < Integer.MAX_VALUE; i++) {
 
                     Log.d(TAG, "running:  " + i);
                     currentUserId = params.getExtras().getLong("currentUserId");
+                    try {
+                        currentUserObject = new GetUserReqTask().execute(currentUserId).get();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
 
                     new Handler(Looper.getMainLooper()).post(new Runnable() {
                         @Override
                         public void run() {
 
-                            if (notificationManager == null) {
-                                notificationManager = NotificationManagerCompat.from(getApplicationContext());
-                            }
+                            if (currentUserObject.getReceiveNotifications()) {
 
-                            NotificationDB[] notificationDBList = {};
-                            try {
-                                notificationDBList = new GetNotificationsForCurrentUserReqTask().execute().get();
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
+                                if (notificationManager == null) {
+                                    notificationManager = NotificationManagerCompat.from(getApplicationContext());
+                                }
 
-                            for (int i = 0; i < notificationDBList.length; i++) {
+                                NotificationDB[] notificationDBList = {};
                                 try {
-                                    // Send notifications at 2 secondds distance
-                                    Thread.sleep(3000);
-                                } catch (InterruptedException e) {
+                                    notificationDBList = new GetNotificationsForCurrentUserReqTask().execute().get();
+                                } catch (Exception e) {
                                     e.printStackTrace();
                                 }
-                                sendNotificationCh1(notificationDBList[i].getMessage());
+
+                                for (int i = 0; i < notificationDBList.length; i++) {
+                                    try {
+                                        // Send notifications at 2 secondds distance
+                                        Thread.sleep(3000);
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    }
+                                    sendNotificationCh1(notificationDBList[i].getMessage());
+                                }
                             }
                         }
                     });
@@ -133,6 +155,35 @@ public class NotificationJobService extends JobService {
 
         @Override
         protected void onPostExecute(NotificationDB[] notificationDBS) {
+        }
+    }
+
+    private class GetUserReqTask extends AsyncTask<Long, Void, User> {
+
+        @Override
+        protected User doInBackground(Long... params) {
+
+            Long idUser = params[0];
+            try {
+                String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/user/" + idUser;
+                HttpHeaders requestHeaders = new HttpHeaders();
+                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
+                HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
+                RestTemplate restTemplate = new RestTemplate();
+                restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+                ResponseEntity<User> currentUser = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, User.class);
+                return currentUser.getBody();
+            } catch (Exception e) {
+                if (((HttpClientErrorException) e).getStatusCode().value() == 403) {
+
+                }
+                Log.e("ERROR-GET-User", e.getMessage());
+            }
+            return new User();
+        }
+
+        @Override
+        protected void onPostExecute(User u) {
         }
     }
 

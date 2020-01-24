@@ -211,6 +211,7 @@ public class MainActivity extends AppCompatActivity {
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             Intent settingsIntent = new Intent(MainActivity.this, SettingsActivity.class);
+            settingsIntent.putExtra("currentUser", currentUserObject);
             startActivity(settingsIntent);
             return true;
         }

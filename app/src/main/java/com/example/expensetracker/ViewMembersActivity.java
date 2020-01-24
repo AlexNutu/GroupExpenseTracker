@@ -129,8 +129,7 @@ public class ViewMembersActivity extends AppCompatActivity {
                 restTemplate.exchange(apiUrl, HttpMethod.POST, requestEntity, User.class);
 
             } catch (Exception e) {
-                if (((HttpClientErrorException) e).getStatusCode().value() == 403)
-                {
+                if (((HttpClientErrorException) e).getStatusCode().value() == 403) {
                     Intent myIntent = new Intent(ViewMembersActivity.this, LoginActivity.class);
                     startActivity(myIntent);
                 }
@@ -162,8 +161,7 @@ public class ViewMembersActivity extends AppCompatActivity {
                 usersList = responseEntity.getBody();
 
             } catch (Exception e) {
-                if (((HttpClientErrorException) e).getStatusCode().value() == 403)
-                {
+                if (((HttpClientErrorException) e).getStatusCode().value() == 403) {
                     Intent myIntent = new Intent(ViewMembersActivity.this, LoginActivity.class);
                     startActivity(myIntent);
                 }
@@ -196,8 +194,7 @@ public class ViewMembersActivity extends AppCompatActivity {
                 membersList = responseEntity.getBody();
 
             } catch (Exception e) {
-                if (((HttpClientErrorException) e).getStatusCode().value() == 403)
-                {
+                if (((HttpClientErrorException) e).getStatusCode().value() == 403) {
                     Intent myIntent = new Intent(ViewMembersActivity.this, LoginActivity.class);
                     startActivity(myIntent);
                 }
@@ -219,7 +216,7 @@ public class ViewMembersActivity extends AppCompatActivity {
         ArrayList<User> membersObjectList = new ArrayList<>();
         for (int i = 0; i < membersList.length; i++) {
             User u = membersList[i];
-            membersObjectList.add(new User(u.getId(), u.getFirstName(), u.getLastName(), u.getEmail(), u.getPassword(), ""));
+            membersObjectList.add(new User(u.getId(), u.getFirstName(), u.getLastName(), u.getEmail(), u.getPassword(), u.getReceiveNotifications(), ""));
         }
 
         MembersListAdapter membersListAdapter = new MembersListAdapter(this, R.layout.member_item, membersObjectList);
