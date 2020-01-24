@@ -7,9 +7,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -43,6 +46,8 @@ public class AddToDoDialog extends AppCompatDialogFragment {
     private User currentUserObject;
 
     private Session session;
+
+    private AlertDialog d;
 
     public AddToDoDialog(Integer tripIdParam, User currentUser) {
         this.tripId = tripIdParam;
@@ -90,10 +95,40 @@ public class AddToDoDialog extends AppCompatDialogFragment {
                     }
                 });
 
-        toDoET = view.findViewById(R.id.toDoET);
+        d = builder.create();
+        d.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialog) {
+                ((AlertDialog)dialog).getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+            }
+        });
 
-        return builder.create();
+        toDoET = view.findViewById(R.id.toDoET);
+        toDoET.addTextChangedListener(mTextWatcher);
+
+        return d;
     }
+
+    private TextWatcher mTextWatcher = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3) {
+        }
+
+        @Override
+        public void onTextChanged(CharSequence charSequence, int i, int i2, int i3) {
+        }
+
+        @Override
+        public void afterTextChanged(Editable editable) {
+            final Button okButton = d.getButton(AlertDialog.BUTTON_POSITIVE);
+            String toDoText = toDoET.getText().toString().trim();
+            if (toDoText.equals("")) {
+                okButton.setEnabled(false);
+            } else {
+                okButton.setEnabled(true);
+            }
+        }
+    };
 
     private class AddToDoReqTask extends AsyncTask<ToDoObjectWithTrip, Void, Void> {
 
