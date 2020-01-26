@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -114,26 +115,34 @@ public class AddTripActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View v) {
-                // Save the trip into DB
-                List<User> membersList = new ArrayList<>();
-                membersList.add(currentUserObject);
-                Trip tripToInsert =
-                        new Trip(null, tripNameString, tripDestinationString, tripStartDateString, tripEndDateString, null, null, membersList, null);
 
-                Integer insertedTripId = -1;
-                try {
-                    insertedTripId = new AddTripReqTask().execute(tripToInsert).get();
-                } catch (Exception e) {
-                    e.printStackTrace();
+                if (!tripStartDateString.matches("^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$")) {
+                    Toast.makeText(AddTripActivity.this, "Wrong StartDate format!", Toast.LENGTH_SHORT).show();
+                } else if (!tripEndDateString.matches("^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$")) {
+                    Toast.makeText(AddTripActivity.this, "Wrong EndDate format!", Toast.LENGTH_SHORT).show();
+                } else {
+
+                    // Save the trip into DB
+                    List<User> membersList = new ArrayList<>();
+                    membersList.add(currentUserObject);
+                    Trip tripToInsert =
+                            new Trip(null, tripNameString, tripDestinationString, tripStartDateString, tripEndDateString, null, null, membersList, null);
+
+                    Integer insertedTripId = -1;
+                    try {
+                        insertedTripId = new AddTripReqTask().execute(tripToInsert).get();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    Intent myIntent = new Intent(AddTripActivity.this, ViewTripActivity.class);
+                    myIntent.putExtra("tripId", insertedTripId);
+                    myIntent.putExtra("currentUserObject", currentUserObject);
+                    myIntent.putExtra("fromActivity", this.getClass().getSimpleName());
+
+                    startActivity(myIntent);
+                    finish();
                 }
-
-                Intent myIntent = new Intent(AddTripActivity.this, ViewTripActivity.class);
-                myIntent.putExtra("tripId", insertedTripId);
-                myIntent.putExtra("currentUserObject", currentUserObject);
-                myIntent.putExtra("fromActivity", this.getClass().getSimpleName());
-
-                startActivity(myIntent);
-                finish();
             }
         });
     }

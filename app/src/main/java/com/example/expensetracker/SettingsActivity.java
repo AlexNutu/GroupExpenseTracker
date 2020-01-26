@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -32,6 +33,7 @@ public class SettingsActivity extends AppCompatActivity {
     private TextView userFullNameTV;
     private TextView userEmailTV;
     private Switch notificationsSwitch;
+    private TextView tvSettingsSignOut;
 
     private Session session;
 
@@ -60,6 +62,7 @@ public class SettingsActivity extends AppCompatActivity {
         userEmailTV = findViewById(R.id.tvSettingsEmail);
         userFullNameTV = findViewById(R.id.tvSettingsFullName);
         notificationsSwitch = findViewById(R.id.notificationsSwitch);
+        tvSettingsSignOut = findViewById(R.id.tvSettingsSignOut);
 
         attachData();
     }
@@ -72,6 +75,16 @@ public class SettingsActivity extends AppCompatActivity {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 try {
                     new UpdateUserReqTask().execute(isChecked).get();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        tvSettingsSignOut.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    new LogoutReqTask().execute().get();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -140,36 +153,34 @@ public class SettingsActivity extends AppCompatActivity {
         }
     }
 
-//    private class LogoutReqTask extends AsyncTask<Void, Void, Trip[]> {
-//
-//        @Override
-//        protected Trip[] doInBackground(Void... voids) {
-//
-//            Trip[] tripsFromDB = {};
-//            try {
-//                String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/trip?page=" + pageNumber + "&size=10&search=members:" + currentUserObject.getId();
-//                HttpHeaders requestHeaders = new HttpHeaders();
-//                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
-//                HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
-//                RestTemplate restTemplate = new RestTemplate();
-//                restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-//                ResponseEntity<Trip[]> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, Trip[].class);
-//                tripsFromDB = responseEntity.getBody();
-//
-//            } catch (Exception e) {
-//                if (((HttpClientErrorException) e).getStatusCode().value() == 403) {
-//                    Intent myIntent = new Intent(MainActivity.this, LoginActivity.class);
-//                    startActivity(myIntent);
-//                }
-//                Log.e("ERROR-GET-TRIPS", e.getMessage());
-//            }
-//
-//            return tripsFromDB;
-//        }
-//
-//        @Override
-//        protected void onPostExecute(Trip[] tripsFromDB) {
-//        }
-//    }
+    private class LogoutReqTask extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+
+            try {
+                String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/logout";
+                HttpHeaders requestHeaders = new HttpHeaders();
+                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
+                HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
+                RestTemplate restTemplate = new RestTemplate();
+                restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+                ResponseEntity<User> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, null);
+
+            } catch (Exception e) {
+                if (((HttpClientErrorException) e).getStatusCode().value() == 403) {
+                    Intent myIntent = new Intent(SettingsActivity.this, LoginActivity.class);
+                    startActivity(myIntent);
+                }
+                Log.e("ERROR-LOGOUT", e.getMessage());
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void voids) {
+        }
+    }
 
 }

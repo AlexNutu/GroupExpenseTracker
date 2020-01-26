@@ -5,10 +5,13 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 
@@ -31,6 +34,8 @@ public class AddComplexExpenseDialog extends AppCompatDialogFragment {
     private String expenseType;
     private String selectedCurrency;
     private String selectedExpenseType;
+
+    private AlertDialog d;
 
     public AddComplexExpenseDialog(String expenseType) {
         this.expenseType = expenseType;
@@ -62,9 +67,20 @@ public class AddComplexExpenseDialog extends AppCompatDialogFragment {
                     }
                 });
 
+        d = builder.create();
+        d.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialog) {
+                ((AlertDialog) dialog).getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+            }
+        });
+
         productNameET = view.findViewById(R.id.productET);
+        productNameET.addTextChangedListener(mTextWatcher);
         costET = view.findViewById(R.id.sumET);
+        costET.addTextChangedListener(mTextWatcher);
         percentageET = view.findViewById(R.id.expensePercentET);
+        percentageET.addTextChangedListener(mTextWatcher);
 
         currencySpinner = view.findViewById(R.id.currencySpinner);
         ArrayAdapter<CharSequence> currencyAdapter = ArrayAdapter.createFromResource(this.getContext(),
@@ -86,7 +102,36 @@ public class AddComplexExpenseDialog extends AppCompatDialogFragment {
         expenseTypeSpinner.setAdapter(expenseTypeAdapter);
         expenseTypeSpinner.setOnItemSelectedListener(expenseTypeListener);
 
-        return builder.create();
+        return d;
+    }
+
+    private TextWatcher mTextWatcher = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3) {
+        }
+
+        @Override
+        public void onTextChanged(CharSequence charSequence, int i, int i2, int i3) {
+        }
+
+        @Override
+        public void afterTextChanged(Editable editable) {
+            checkEmptyFieldValues();
+        }
+    };
+
+    private void checkEmptyFieldValues() {
+        final Button okButton = d.getButton(AlertDialog.BUTTON_POSITIVE);
+        String productNameText = productNameET.getText().toString().trim();
+        String costText = costET.getText().toString().trim();
+        String percentageText = percentageET.getText().toString().trim();
+        if (productNameText.equals("")
+                || costText.equals("")
+                || (percentageText.equals("") && percentageET.getVisibility() == View.VISIBLE)) {
+            okButton.setEnabled(false);
+        } else {
+            okButton.setEnabled(true);
+        }
     }
 
     private AdapterView.OnItemSelectedListener currencyListener = new AdapterView.OnItemSelectedListener() {
@@ -106,8 +151,10 @@ public class AddComplexExpenseDialog extends AppCompatDialogFragment {
             selectedExpenseType = parent.getItemAtPosition(position).toString();
             if (selectedExpenseType.equals("Initial Collect Expense")) {
                 percentageET.setVisibility(View.VISIBLE);
+                checkEmptyFieldValues();
             } else {
                 percentageET.setVisibility(View.GONE);
+                checkEmptyFieldValues();
             }
         }
 

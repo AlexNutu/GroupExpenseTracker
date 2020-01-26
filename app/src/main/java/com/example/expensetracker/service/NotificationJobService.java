@@ -1,6 +1,7 @@
 package com.example.expensetracker.service;
 
 import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.job.JobParameters;
 import android.app.job.JobService;
 import android.content.Intent;
@@ -14,6 +15,7 @@ import androidx.core.app.NotificationManagerCompat;
 
 import com.example.expensetracker.R;
 import com.example.expensetracker.SettingsActivity;
+import com.example.expensetracker.ViewTripActivity;
 import com.example.expensetracker.domain.NotificationDB;
 import com.example.expensetracker.domain.User;
 import com.example.expensetracker.helper.Session;
@@ -124,6 +126,8 @@ public class NotificationJobService extends JobService {
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_1_ID)
                 .setSmallIcon(R.drawable.ic_notifications_green)
                 .setContentTitle(title)
+                .setStyle(new NotificationCompat.BigTextStyle()
+                        .bigText(message))
                 .setContentText(message)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setCategory(NotificationCompat.CATEGORY_MESSAGE)

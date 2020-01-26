@@ -10,6 +10,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -61,12 +63,12 @@ public class ViewTripActivity extends AppCompatActivity implements ExpenseDialog
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_trip);
-
-        session = new Session(getApplicationContext());
-
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        session = new Session(getApplicationContext());
         db = DatabaseHelper.getInstance(this);
+
         tripTitleTV = (TextView) findViewById(R.id.tvViewTrip);
         tripDestinationTV = (TextView) findViewById(R.id.tripDestinationTV);
         tripStartDateTV = (TextView) findViewById(R.id.tripStartDateTV);
@@ -83,6 +85,31 @@ public class ViewTripActivity extends AppCompatActivity implements ExpenseDialog
         myIntent.putExtra("fromActivity", "ViewTripActivity");
         startActivity(myIntent);
         finish();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            Intent settingsIntent = new Intent(ViewTripActivity.this, SettingsActivity.class);
+            settingsIntent.putExtra("currentUser", currentUserObject);
+            startActivity(settingsIntent);
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     private void init() {
