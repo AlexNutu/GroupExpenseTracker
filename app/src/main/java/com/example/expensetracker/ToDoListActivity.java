@@ -13,7 +13,6 @@ import androidx.appcompat.widget.Toolbar;
 import com.example.expensetracker.adapter.ToDoListAdapter;
 import com.example.expensetracker.dialog.AddToDoDialog;
 import com.example.expensetracker.domain.ToDoObjectWithTrip;
-import com.example.expensetracker.domain.Trip;
 import com.example.expensetracker.domain.User;
 import com.example.expensetracker.helper.DatabaseHelper;
 import com.example.expensetracker.helper.NetworkStateChecker;
@@ -63,9 +62,12 @@ public class ToDoListActivity extends AppCompatActivity {
         }
         else {
             ListView mListView = (ListView) findViewById(R.id.toDoLV);
-            ArrayList<ToDoObjectWithTrip> toDoObjectList = db.getTripNotesList(tripId);
-            ToDoListAdapter toDoListAdapter = new ToDoListAdapter(this, R.layout.adapter_todo_view_layout, toDoObjectList, tripId);
-            mListView.setAdapter(toDoListAdapter);
+            ArrayList<ToDoObjectWithTrip> notes = db.getTripNotesList(tripId);
+            if(notes != null)
+                setListViewItems(notes.toArray(new ToDoObjectWithTrip[0]));
+            else
+                setListViewItems(new ToDoObjectWithTrip[0]);
+
         }
 
 

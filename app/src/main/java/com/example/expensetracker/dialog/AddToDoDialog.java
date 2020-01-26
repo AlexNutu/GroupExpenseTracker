@@ -21,11 +21,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatDialogFragment;
 
+import com.example.expensetracker.GroupExpenseTracker;
 import com.example.expensetracker.R;
 import com.example.expensetracker.adapter.ToDoListAdapter;
 import com.example.expensetracker.domain.ToDoObjectWithTrip;
 import com.example.expensetracker.domain.Trip;
 import com.example.expensetracker.domain.User;
+import com.example.expensetracker.helper.DatabaseHelper;
+import com.example.expensetracker.helper.NetworkStateChecker;
 import com.example.expensetracker.helper.Session;
 
 import org.springframework.http.HttpEntity;
@@ -49,6 +52,8 @@ public class AddToDoDialog extends AppCompatDialogFragment {
 
     private AlertDialog d;
 
+    private DatabaseHelper db;
+
     public AddToDoDialog(Integer tripIdParam, User currentUser) {
         this.tripId = tripIdParam;
         this.currentUserObject = currentUser;
@@ -65,6 +70,7 @@ public class AddToDoDialog extends AppCompatDialogFragment {
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
 
         session = new Session(getContext());
+        db = DatabaseHelper.getInstance(getContext());
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
@@ -91,7 +97,18 @@ public class AddToDoDialog extends AppCompatDialogFragment {
                         toDoObjectWithTrip.setMessage(toDoText);
                         toDoObjectWithTrip.setUser(currentUserObject);
                         toDoObjectWithTrip.setTrip(currentTrip);
-                        new AddToDoReqTask().execute(toDoObjectWithTrip);
+                        if(NetworkStateChecker.isConnected(getContext()))
+                             new AddToDoReqTask().execute(toDoObjectWithTrip);
+                        else {
+                            db.addNote(toDoObjectWithTrip, 0);
+                            Toast.makeText(activityContext, "To Do added successfully in local storage!", Toast.LENGTH_SHORT).show();
+                            ArrayList<ToDoObjectWithTrip> notes = db.getTripNotesList(tripId);
+                            if(notes != null)
+                                setListViewItems(notes.toArray(new ToDoObjectWithTrip[0]));
+                            else
+                                setListViewItems(new ToDoObjectWithTrip[0]);
+
+                        }
                     }
                 });
 

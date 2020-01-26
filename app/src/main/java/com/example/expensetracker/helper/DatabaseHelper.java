@@ -556,7 +556,26 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
 
     // NOTE
-    public void addNote(ToDoObjectWithTrip note) {
+
+    public Integer getNoteStatusById(Long noteId){
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query(TABLE_NOTE, new String[] {
+                        KEY_STATUS }, KEY_ID + "=?",
+                new String[] { String.valueOf(noteId) }, null, null, null, null);
+
+        Integer status = null;
+
+        if (cursor != null) {
+            if(cursor.moveToNext())
+                status = cursor.getInt(0);
+        }
+        cursor.close();
+
+        return status;
+    }
+
+    public void addNote(ToDoObjectWithTrip note, Integer status) {
         SQLiteDatabase db = this.getWritableDatabase();
         db.beginTransaction();
 
@@ -564,13 +583,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             ContentValues values = new ContentValues();
             values.put(KEY_USER_ID, note.getUser().getId());
             values.put(KEY_TRIP_ID, note.getTrip().getId());
-            values.put(KEY_ID, note.getId());
+            if(status==1)
+                values.put(KEY_ID, note.getId());
             values.put(KEY_MESSAGE, note.getMessage());
             values.put(KEY_CREATE_DATE, note.getCreateDate());
             values.put(KEY_MODIFY_DATE, note.getModifyDate());
             values.put(KEY_MESSAGE, note.getMessage());
             values.put(KEY_APPROVED, note.getApproved());
-            values.put(KEY_STATUS, 1);
+            values.put(KEY_STATUS, status);
             // Notice how we haven't specified the primary key. SQLite auto increments the primary key column.
             db.insertOrThrow(TABLE_NOTE, null, values);
             db.setTransactionSuccessful();
@@ -581,20 +601,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    public void updateNote(ToDoObjectWithTrip note) {
+    public void updateNote(ToDoObjectWithTrip note, Integer status) {
         SQLiteDatabase db = this.getWritableDatabase();
         db.beginTransaction();
+
+        Integer currentStatus = getNoteStatusById(note.getId());
+        if(currentStatus == 0)
+            status = 0;
 
         try {
             ContentValues values = new ContentValues();
             values.put(KEY_USER_ID, note.getUser().getId());
-            values.put(KEY_TRIP_ID, note.getTrip().getId());
             values.put(KEY_MESSAGE, note.getMessage());
             values.put(KEY_CREATE_DATE, note.getCreateDate());
             values.put(KEY_MODIFY_DATE, note.getModifyDate());
             values.put(KEY_MESSAGE, note.getMessage());
             values.put(KEY_APPROVED, note.getApproved());
-            values.put(KEY_STATUS, 1);
+            values.put(KEY_STATUS, status);
             // Notice how we haven't specified the primary key. SQLite auto increments the primary key column.
             db.update(TABLE_NOTE, values, KEY_ID + " = ?",
                     new String[] { String.valueOf(note.getId())});
@@ -609,9 +632,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public ArrayList<ToDoObjectWithTrip> getTripNotesList(Integer tripId) {
         SQLiteDatabase db = this.getReadableDatabase();
-        String sql = "select n.id, n.create_date, n.modify_date, n.message, n.approved, u.first_name, u.last_name, u.email, n.user_id\n" +
+        String sql = "select n.id, n.create_date, n.modify_date, n.message, n.approved, n.trip_id,u.first_name, u.last_name, u.email, n.user_id\n" +
                 " from note n, user_profile u \n" +
-                " where n.user_id = u.id and n.trip_id = ?" ;
+                " where n.user_id = u.id and n.status<>3 and n.trip_id = ?" ;
         ArrayList<ToDoObjectWithTrip> notes = new ArrayList<>();
 
         Cursor cursor = db.rawQuery(sql, new String[]{String.valueOf(tripId)});
@@ -624,13 +647,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 user.setFirstName(cursor.getString(cursor.getColumnIndex(KEY_FIRST_NAME)));
                 user.setLastName(cursor.getString(cursor.getColumnIndex(KEY_LAST_NAME)));
                 user.setEmail(cursor.getString(cursor.getColumnIndex(KEY_EMAIL)));
+                Trip trip = new Trip();
+                trip.setId(cursor.getColumnIndex(KEY_TRIP_ID));
                 ToDoObjectWithTrip note = new ToDoObjectWithTrip();
-                note.setId(cursor.getLong(cursor.getColumnIndex(KEY_USER_ID)));
+                note.setId(cursor.getLong(cursor.getColumnIndex(KEY_ID)));
                 note.setCreateDate(cursor.getString(cursor.getColumnIndex(KEY_CREATE_DATE)));
                 note.setModifyDate(cursor.getString(cursor.getColumnIndex(KEY_MODIFY_DATE)));
                 note.setMessage(cursor.getString(cursor.getColumnIndex(KEY_MESSAGE)));
                 note.setApproved(cursor.getInt(cursor.getColumnIndex(KEY_APPROVED))!=0);
                 note.setUser(user);
+                note.setTrip(trip);
                 notes.add(note);
             } while (cursor.moveToNext());
         }
@@ -641,6 +667,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return notes;
     }
 
+    public void deleteNote(Long noteId){
+        String sql;
+        if(getNoteStatusById(noteId)==0)
+             sql = "delete from " + TABLE_NOTE + " where id= ?";
+        else
+            sql = "update note set status = 3 where id= ?";
+        SQLiteDatabase db = this.getWritableDatabase();
+        try{
+            db.beginTransaction();
+            db.execSQL(sql,new String[]{String.valueOf(noteId)});
+            db.setTransactionSuccessful();
+        }catch (Exception e){
+            Log.d(TAG, "Error while trying to delete note from database");
+        }finally {
+            db.endTransaction();
+        }
+    }
 
     // Expense
     public void addExpense(Expense expense, Integer status) {

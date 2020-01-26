@@ -315,7 +315,7 @@ public class MySQLSynchronizer {
         List<Integer> trips = db.getAllTripsId();
         for (int i = 0; i < notesFromDB.length; i++) {
             if (trips.contains(notesFromDB[i].getTrip().getId()))
-                db.addNote(notesFromDB[i]);
+                db.addNote(notesFromDB[i],1);
         }
     }
 
@@ -360,7 +360,7 @@ public class MySQLSynchronizer {
         List<Integer> trips = db.getAllTripsId();
         for (int i = 0; i < notesFromDB.length; i++) {
             if(trips.contains(notesFromDB[i].getTrip().getId()))
-                db.updateNote(notesFromDB[i]);
+                db.updateNote(notesFromDB[i], 1);
         }
     }
 

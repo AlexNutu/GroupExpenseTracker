@@ -20,6 +20,8 @@ import androidx.appcompat.app.AppCompatDialogFragment;
 import com.example.expensetracker.R;
 import com.example.expensetracker.adapter.ToDoListAdapter;
 import com.example.expensetracker.domain.ToDoObjectWithTrip;
+import com.example.expensetracker.helper.DatabaseHelper;
+import com.example.expensetracker.helper.NetworkStateChecker;
 import com.example.expensetracker.helper.Session;
 
 import org.springframework.http.HttpEntity;
@@ -38,6 +40,7 @@ public class DeleteToDoDialog extends AppCompatDialogFragment {
     private Context activityContext;
 
     private Session session;
+    private DatabaseHelper db;
 
     public DeleteToDoDialog(Long toDoIdParam, Integer tripIdParam) {
         this.toDoId = toDoIdParam;
@@ -56,6 +59,7 @@ public class DeleteToDoDialog extends AppCompatDialogFragment {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         session = new Session(getContext());
+        db = DatabaseHelper.getInstance(getContext());
 
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.delete_todo_dialog, null);
@@ -70,7 +74,18 @@ public class DeleteToDoDialog extends AppCompatDialogFragment {
                 .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        new DeleteToDoReqTask().execute(toDoId);
+                        if(NetworkStateChecker.isConnected(getContext()))
+                            new DeleteToDoReqTask().execute(toDoId);
+                        else{
+                            db.deleteNote(toDoId);
+                            Toast.makeText(activityContext, "Deleted successfully", Toast.LENGTH_SHORT).show();
+                            ArrayList<ToDoObjectWithTrip> notes = db.getTripNotesList(tripId);
+                            if(notes != null)
+                                setListViewItems(notes.toArray(new ToDoObjectWithTrip[0]));
+                            else
+                                setListViewItems(new ToDoObjectWithTrip[0]);
+                        }
+
                     }
                 });
 

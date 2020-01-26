@@ -22,6 +22,8 @@ import com.example.expensetracker.R;
 import com.example.expensetracker.adapter.ToDoListAdapter;
 import com.example.expensetracker.domain.ToDoObjectWithTrip;
 import com.example.expensetracker.domain.ToDoObjectWithTrip;
+import com.example.expensetracker.helper.DatabaseHelper;
+import com.example.expensetracker.helper.NetworkStateChecker;
 import com.example.expensetracker.helper.Session;
 
 import org.springframework.http.HttpEntity;
@@ -41,6 +43,7 @@ public class CheckToDoDialog extends AppCompatDialogFragment {
     private Context activityContext;
 
     private Session session;
+    private DatabaseHelper db;
 
     public CheckToDoDialog(ToDoObjectWithTrip ToDoObjectWithTrip, Integer tripIdParam) {
         this.tripId = tripIdParam;
@@ -60,6 +63,7 @@ public class CheckToDoDialog extends AppCompatDialogFragment {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
         session = new Session(getContext());
+        db = DatabaseHelper.getInstance(getContext());
 
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.delete_todo_dialog, null);
@@ -74,7 +78,18 @@ public class CheckToDoDialog extends AppCompatDialogFragment {
                 .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        new UpdateToDoReqTask().execute(toUpdateToDo);
+                        if(NetworkStateChecker.isConnected(getContext()))
+                            new UpdateToDoReqTask().execute(toUpdateToDo);
+                        else {
+                            db.updateNote(toUpdateToDo, 2);
+                            Toast.makeText(activityContext, "To Do was updated!", Toast.LENGTH_SHORT).show();
+                            ArrayList<ToDoObjectWithTrip> notes = db.getTripNotesList(tripId);
+                            if(notes != null)
+                                setListViewItems(notes.toArray(new ToDoObjectWithTrip[0]));
+                            else
+                                setListViewItems(new ToDoObjectWithTrip[0]);
+
+                        }
                     }
                 });
 
