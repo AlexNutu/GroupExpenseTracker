@@ -56,8 +56,17 @@ public class TripListAdapter extends BaseAdapter implements Filterable {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         @SuppressLint("ViewHolder") View view = View.inflate(mContext, R.layout.trip_list_item, null);
-        TextView tvName = (TextView) view.findViewById(R.id.trip_name_item);
+        TextView tvName = (TextView) view.findViewById(R.id.tripNameItemTV);
+        TextView tvDestination = (TextView) view.findViewById(R.id.tripDestinationItemTV);
+        TextView tvStartDate = (TextView) view.findViewById(R.id.startDateItemTV);
+        TextView tvEndDate = (TextView) view.findViewById(R.id.endDateItemTV);
+
         tvName.setText(mTripList.get(position).getName());
+        tvDestination.setText(mTripList.get(position).getDestination());
+        String shortStartDate = mTripList.get(position).getStartDate();//.substring(0, 10);
+        String shortEndDate = mTripList.get(position).getEndDate();//.substring(0, 10);
+        tvStartDate.setText(shortStartDate);
+        tvEndDate.setText(shortEndDate);
 
         view.setTag(mTripList.get(position).getId());
         return view;
@@ -86,6 +95,9 @@ public class TripListAdapter extends BaseAdapter implements Filterable {
                             .contains(constraint.toString().toUpperCase())) {
                         Trip trip = new Trip();
                         trip.setName(mTripForFiltering.get(i).getName());
+                        trip.setDestination(mTripForFiltering.get(i).getDestination());
+                        trip.setStartDate(mTripForFiltering.get(i).getStartDate());
+                        trip.setEndDate(mTripForFiltering.get(i).getEndDate());
                         trip.setId(mTripForFiltering.get(i).getId());
                         filterList.add(trip);
                     }
