@@ -25,6 +25,7 @@ import com.example.expensetracker.domain.Expense;
 import com.example.expensetracker.domain.ExpenseDialogListener;
 import com.example.expensetracker.domain.Trip;
 import com.example.expensetracker.domain.User;
+import com.example.expensetracker.helper.NetworkStateChecker;
 import com.example.expensetracker.helper.Session;
 import com.getbase.floatingactionbutton.FloatingActionButton;
 
@@ -43,7 +44,7 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 
-public class ViewTripActivity extends AppCompatActivity implements ExpenseDialogListener {
+public class ViewTripActivity extends AppCompatActivity implements ExpenseDialogListener, NetworkStateChecker.ConnectivityListener {
 
     private Session session;
 
@@ -81,6 +82,7 @@ public class ViewTripActivity extends AppCompatActivity implements ExpenseDialog
         myIntent.putExtra("currentUserObject", this.currentUserObject);
         myIntent.putExtra("fromActivity", "ViewTripActivity");
         startActivity(myIntent);
+        finish();
     }
 
     private void init() {
@@ -191,6 +193,15 @@ public class ViewTripActivity extends AppCompatActivity implements ExpenseDialog
     private void openComplexExpenseDialog(String expenseType) {
         AddComplexExpenseDialog addComplexExpenseDialog = new AddComplexExpenseDialog(expenseType);
         addComplexExpenseDialog.show(getSupportFragmentManager(), "complex expense dialog");
+    }
+
+    @Override
+    public void onConnectivityStateChange() {
+        Intent myIntent = new Intent(ViewTripActivity.this, ViewTripActivity.class);
+        myIntent.putExtra("currentUserObject", currentUserObject);
+        myIntent.putExtra("tripId", idCurrentTrip);
+        startActivity(myIntent);
+        finish();
     }
 
     private class GetTripReqTask extends AsyncTask<Integer, Void, Trip> {

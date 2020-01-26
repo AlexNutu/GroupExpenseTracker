@@ -1,5 +1,6 @@
 package com.example.expensetracker.domain.ui.main;
 
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -8,6 +9,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,9 +18,12 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
+import com.example.expensetracker.LoginActivity;
 import com.example.expensetracker.R;
 import com.example.expensetracker.adapter.ViewReportAdapter;
 import com.example.expensetracker.domain.Expense;
+import com.example.expensetracker.helper.DatabaseHelper;
+import com.example.expensetracker.helper.NetworkStateChecker;
 import com.example.expensetracker.helper.Session;
 
 import org.springframework.http.HttpEntity;
@@ -26,6 +32,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.ArrayList;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -44,6 +52,7 @@ public class PlaceholderFragment extends Fragment {
     private Integer idTrip;
 
     private Session session;
+    private DatabaseHelper db;
 
     public static PlaceholderFragment newInstance(int index, int idTrip) {
         PlaceholderFragment fragment = new PlaceholderFragment();
@@ -59,7 +68,7 @@ public class PlaceholderFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         session = new Session(getContext());
-
+        db = DatabaseHelper.getInstance(this.getContext());
         pageViewModel = ViewModelProviders.of(this).get(PageViewModel.class);
         int index = 1;
         if (getArguments() != null) {
@@ -78,9 +87,16 @@ public class PlaceholderFragment extends Fragment {
         final View root = inflater.inflate(R.layout.fragment_view_report, container, false);
 
         reportList = root.findViewById(R.id.reportListLV);
-
-        new GetUnperformedExpensesReqTask().execute(idTrip);
-
+        if(NetworkStateChecker.isConnected(this.getContext())) {
+            new GetUnperformedExpensesReqTask().execute(idTrip);
+        }
+        else {
+            ArrayList<Expense> reported = db.getUnperformedReportList(idTrip);
+            if(reported!=null)
+                callGetAllExpensesRequests(reported.toArray(new Expense[0]));
+            else
+                callGetAllExpensesRequests(new Expense[0]);
+        }
         return root;
     }
 
@@ -115,7 +131,18 @@ public class PlaceholderFragment extends Fragment {
 
     public void callGetAllExpensesRequests(Expense[] unperformedExpenses) {
         this.unperformedExpenses = unperformedExpenses;
-        new GetAllExpensesReqTask().execute(idTrip);
+        if(NetworkStateChecker.isConnected(this.getContext())) {
+            new GetAllExpensesReqTask().execute(idTrip);
+        }
+        else {
+             Expense[] allExpenses = {};
+             ArrayList<Expense> expenses = db.getExpenseReportList(idTrip);
+             if(expenses != null)
+                allExpenses = expenses.toArray(new Expense[0]);
+             else
+                 allExpenses = new Expense[0];
+             populateListView(allExpenses);
+        }
     }
 
     private class GetAllExpensesReqTask extends AsyncTask<Integer, Void, Expense[]> {

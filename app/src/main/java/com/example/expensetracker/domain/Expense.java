@@ -2,6 +2,7 @@ package com.example.expensetracker.domain;
 
 public class Expense {
 
+    private Long id;
     private String expensiveType;
     private String product;
     private float sum;
@@ -9,6 +10,9 @@ public class Expense {
     private float percent;
     private User user;
     private Trip trip;
+    private String createDate;
+    private String modifyDate;
+    private Integer status;
 
     private String errorMessage;
 
@@ -23,6 +27,14 @@ public class Expense {
         this.percent = percent;
         this.user = user;
         this.trip = trip;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getExpensiveType() {
@@ -88,4 +100,16 @@ public class Expense {
     public void setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
     }
+
+    public String getCreateDate() { return createDate; }
+
+    public void setCreateDate(String createDate) { this.createDate = createDate; }
+
+    public String getModifyDate() { return modifyDate; }
+
+    public void setModifyDate(String modifyDate) { this.modifyDate = modifyDate; }
+
+    public Integer getStatus() { return status; }
+
+    public void setStatus(Integer status) { this.status = status; }
 }

@@ -37,12 +37,14 @@ public class NetworkStateChecker extends BroadcastReceiver {
         if (activeNetwork != null) {
             //if connected to wifi or mobile data plan
             if (activeNetwork.getType() == ConnectivityManager.TYPE_WIFI || activeNetwork.getType() == ConnectivityManager.TYPE_MOBILE) {
-                if(db.getLastSyncDB(1) == null)
-                    db.addOrUpdateSyncDB(1);
+                if(db.getLastSyncDB(2) == null)
+                    db.addOrUpdateSyncDB(2);
                 mySQLSynchronizer.synchronizeUsers();
                 mySQLSynchronizer.synchronizeTrips();
                 mySQLSynchronizer.synchronizeNotes();
                 mySQLSynchronizer.synchronizeDeleted();
+                mySQLSynchronizer.synchronizeExpenses();
+                mySQLSynchronizer.synchronizeReports();
 
             }
         }

@@ -13,7 +13,10 @@ import androidx.appcompat.widget.Toolbar;
 import com.example.expensetracker.adapter.ToDoListAdapter;
 import com.example.expensetracker.dialog.AddToDoDialog;
 import com.example.expensetracker.domain.ToDoObjectWithTrip;
+import com.example.expensetracker.domain.Trip;
 import com.example.expensetracker.domain.User;
+import com.example.expensetracker.helper.DatabaseHelper;
+import com.example.expensetracker.helper.NetworkStateChecker;
 import com.example.expensetracker.helper.Session;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -32,6 +35,7 @@ public class ToDoListActivity extends AppCompatActivity {
 
     private Integer tripId = -1;
     private User currentUserObject;
+    private DatabaseHelper db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +45,7 @@ public class ToDoListActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         session = new Session(getApplicationContext());
+        db = DatabaseHelper.getInstance(this);
 
         Intent currentIntent = getIntent();
         if (currentIntent != null) {
@@ -53,7 +58,16 @@ public class ToDoListActivity extends AppCompatActivity {
 
     private void setActions() {
         // Retrieve To do's from DB and attach them to the list view
-        new GetToDosReqTask().execute(tripId);
+        if(NetworkStateChecker.isConnected(this)){
+            new GetToDosReqTask().execute(tripId);
+        }
+        else {
+            ListView mListView = (ListView) findViewById(R.id.toDoLV);
+            ArrayList<ToDoObjectWithTrip> toDoObjectList = db.getTripNotesList(tripId);
+            ToDoListAdapter toDoListAdapter = new ToDoListAdapter(this, R.layout.adapter_todo_view_layout, toDoObjectList, tripId);
+            mListView.setAdapter(toDoListAdapter);
+        }
+
 
         FloatingActionButton addToDo = (FloatingActionButton) findViewById(R.id.floatingAddToDoButton);
         final Integer finalTripIdParam = tripId;

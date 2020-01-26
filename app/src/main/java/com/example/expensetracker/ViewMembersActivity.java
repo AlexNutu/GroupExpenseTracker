@@ -13,6 +13,9 @@ import androidx.appcompat.widget.Toolbar;
 
 import com.example.expensetracker.adapter.MembersListAdapter;
 import com.example.expensetracker.domain.User;
+import com.example.expensetracker.helper.ConnectivityReceiver;
+import com.example.expensetracker.helper.DatabaseHelper;
+import com.example.expensetracker.helper.NetworkStateChecker;
 import com.example.expensetracker.helper.Session;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -25,12 +28,13 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import in.galaxyofandroid.spinerdialog.OnSpinerItemClick;
 import in.galaxyofandroid.spinerdialog.SpinnerDialog;
 
-public class ViewMembersActivity extends AppCompatActivity {
+public class ViewMembersActivity extends AppCompatActivity implements ConnectivityReceiver.ConnectivityReceiverListener{
 
     private Session session;
 
@@ -52,10 +56,15 @@ public class ViewMembersActivity extends AppCompatActivity {
             tripId = currentIntent.getIntExtra("tripId", -1);
         }
 
-        try {
-            setActions();
-        } catch (Exception e) {
-            e.printStackTrace();
+        if(NetworkStateChecker.isConnected(this)) {
+            try {
+                setActions();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        else {
+                setOfflineActions();
         }
     }
 
@@ -104,6 +113,7 @@ public class ViewMembersActivity extends AppCompatActivity {
         });
 
         FloatingActionButton addMemberBtn = (FloatingActionButton) findViewById(R.id.floatingAddMemberBtn);
+        addMemberBtn.show();
         addMemberBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -111,6 +121,24 @@ public class ViewMembersActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    private void setOfflineActions() {
+        ListView mListView = (ListView) findViewById(R.id.membersLV);
+        DatabaseHelper db =  DatabaseHelper.getInstance(this);
+        ArrayList<User> membersObjectList = db.getTripMembers(tripId);
+        MembersListAdapter membersListAdapter = new MembersListAdapter(this, R.layout.member_item, membersObjectList);
+        mListView.setAdapter(membersListAdapter);
+        FloatingActionButton addMemberBtn = (FloatingActionButton) findViewById(R.id.floatingAddMemberBtn);
+        addMemberBtn.hide();
+    }
+
+    @Override
+    public void onNetworkConnectionChanged() {
+        Intent membersIntent = new Intent(ViewMembersActivity.this, ViewMembersActivity.class);
+        membersIntent.putExtra("tripId", tripId);
+        startActivity(membersIntent);
+        finish();
     }
 
     private class AddMemberReqTask extends AsyncTask<User, Void, Void> {
@@ -223,4 +251,9 @@ public class ViewMembersActivity extends AppCompatActivity {
         mListView.setAdapter(membersListAdapter);
     }
 
+    @Override
+    protected void onResume(){
+        GroupExpenseTracker.getInstance().setConnectivityListener(this);
+        super.onResume();
+    }
 }

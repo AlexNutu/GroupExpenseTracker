@@ -57,12 +57,11 @@ public class MainActivity extends AppCompatActivity  implements NetworkStateChec
     private static final String TAG = "MainActivity";
 
     DatabaseHelper db;
-    //private NetworkStateChecker networkStateChecker;
+    private NetworkStateChecker networkStateChecker;
 
     private Session session;
 
     private ListView lvTripList;
-    //    private ArrayAdapter<String> adapterTripList;
     private EditText inputSearch;
 
     private User currentUserObject;
@@ -77,10 +76,8 @@ public class MainActivity extends AppCompatActivity  implements NetworkStateChec
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-//        networkStateChecker = new NetworkStateChecker(this);
-//        registerReceiver(networkStateChecker, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
-        db = DatabaseHelper.getInstance(this);
-        //db.getReadableDatabase();
+         db = DatabaseHelper.getInstance(this);
+         db.getReadableDatabase();
 
         super.onCreate(savedInstanceState);
 
@@ -100,7 +97,9 @@ public class MainActivity extends AppCompatActivity  implements NetworkStateChec
             }
         }
 
-        addTripButton();
+        networkStateChecker = new NetworkStateChecker(this);
+        registerReceiver(networkStateChecker, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+
 
         LayoutInflater li = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         ftView = li.inflate(R.layout.footer_view, null);
@@ -109,8 +108,15 @@ public class MainActivity extends AppCompatActivity  implements NetworkStateChec
         session = new Session(getApplicationContext());
 
 
-        attachTripsFromServerDB();
-
+        if(NetworkStateChecker.isConnected(this)){
+            addTripButton();
+            attachTripsFromServerDB();
+        }
+        else {
+            FloatingActionButton addTrip = (FloatingActionButton) findViewById(R.id.floatingAddTripButton);
+            addTrip.hide();
+            configureAdapterAndListView(db.getAllTrips().toArray(new Trip[0]));
+        }
         // Start job for sending notifications
         scheduleJob(findViewById(android.R.id.content).getRootView());
     }
@@ -126,6 +132,7 @@ public class MainActivity extends AppCompatActivity  implements NetworkStateChec
 
     private void addTripButton() {
         FloatingActionButton addTrip = (FloatingActionButton) findViewById(R.id.floatingAddTripButton);
+        addTrip.show();
         addTrip.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -153,7 +160,7 @@ public class MainActivity extends AppCompatActivity  implements NetworkStateChec
 
             @Override
             public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-                if (view.getLastVisiblePosition() == totalItemCount - 1 && lvTripList.getCount() >= 10
+                if (NetworkStateChecker.isConnected(getApplicationContext()) && view.getLastVisiblePosition() == totalItemCount - 1 && lvTripList.getCount() >= 10
                         && lastTripSize != 0 && isLoading == false) {
                     isLoading = true;
                     Thread thread = new ThreadGetMoreData();
@@ -173,6 +180,7 @@ public class MainActivity extends AppCompatActivity  implements NetworkStateChec
                 tripIdToSend = (Integer) view.getTag();
                 myIntent.putExtra("tripId", tripIdToSend);
                 startActivity(myIntent);
+                finish();
             }
         });
 
@@ -308,16 +316,21 @@ public class MainActivity extends AppCompatActivity  implements NetworkStateChec
 
     @Override
     protected void onDestroy() {
-//        unregisterReceiver(networkStateChecker);
+         unregisterReceiver(networkStateChecker);
         super.onDestroy();
     }
 
     @Override
     public void onConnectivityStateChange() {
-        if(NetworkStateChecker.isConnected(this))
+        if(NetworkStateChecker.isConnected(this)){
+            addTripButton();
             attachTripsFromServerDB();
-        else
+        }
+        else {
+            FloatingActionButton addTrip = (FloatingActionButton) findViewById(R.id.floatingAddTripButton);
+            addTrip.hide();
             configureAdapterAndListView(db.getAllTrips().toArray(new Trip[0]));
+        }
     }
 
     private class GetTripsReqTask extends AsyncTask<Void, Void, Trip[]> {

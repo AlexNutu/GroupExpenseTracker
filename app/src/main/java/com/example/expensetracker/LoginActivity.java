@@ -17,7 +17,10 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.expensetracker.domain.NotificationDB;
+import com.example.expensetracker.domain.Trip;
 import com.example.expensetracker.domain.User;
+import com.example.expensetracker.helper.DatabaseHelper;
+import com.example.expensetracker.helper.NetworkStateChecker;
 import com.example.expensetracker.helper.Session;
 
 import org.springframework.http.ResponseEntity;
@@ -29,6 +32,7 @@ public class LoginActivity extends AppCompatActivity {
 
     public static final String CHANNEL_1_ID = "channel1";
     private Session session;//global variable
+    private DatabaseHelper db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,7 +48,19 @@ public class LoginActivity extends AppCompatActivity {
 
         createNotificationChannels();
 
-        setActions();
+        if(NetworkStateChecker.isConnected(this)){
+            setActions();
+        }
+        else{
+            User loggedUser =  new User(2L, "Andreea","Gr","","",true,"");
+            Intent myIntent = new Intent(LoginActivity.this, MainActivity.class);
+            myIntent.putExtra("currentUserObject", loggedUser);
+            myIntent.putExtra("fromActivity", "LoginActivity");
+            startActivity(myIntent);
+            finish();
+        }
+
+
     }
 
     private void setActions() {

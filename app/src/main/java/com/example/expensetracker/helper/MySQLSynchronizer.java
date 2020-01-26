@@ -5,10 +5,15 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import com.example.expensetracker.domain.DeletedRecord;
+import com.example.expensetracker.domain.Expense;
+import com.example.expensetracker.domain.Report;
 import com.example.expensetracker.domain.ToDoObjectWithTrip;
 import com.example.expensetracker.domain.Trip;
 import com.example.expensetracker.domain.User;
 
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
@@ -45,8 +50,19 @@ public class MySQLSynchronizer {
         new GetUpdatedNoteReqTask().execute();
     }
 
+    public void synchronizeExpenses(){
+        new GetInsertedExpenseReqTask().execute();
+        new GetUpdatedExpenseReqTask().execute();
+    }
     public void synchronizeDeleted(){
         new GetDeletedRecordReqTask().execute();
+    }
+    public void synchronizeReports(){
+        db.deleteAllReports();
+        List<Integer> trips = db.getAllTripsId();
+        for (int i = 0; i < trips.size(); i++) {
+            new GetTripReportTask().execute(trips.get(i));
+        }
     }
 
 
@@ -60,14 +76,18 @@ public class MySQLSynchronizer {
             Trip[] tripsFromDB = {};
             try {
                 db =  DatabaseHelper.getInstance(context);
-                Date lastSync = db.getLastSyncDB(1);
+                Date lastSync = db.getLastSyncDB(2);
                 DateFormat dateFormat = new SimpleDateFormat("yyyy-M-dd HH:mm");
                 String strDate = dateFormat.format(lastSync);
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/trip";
-                apiUrl = apiUrl + "?search=createDate>" + strDate + "\\members:1";
+                apiUrl = apiUrl + "?search=createDate>" + strDate + "\\members:2";
+                HttpHeaders requestHeaders = new HttpHeaders();
+                Session session = new Session(context);
+                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
+                HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                ResponseEntity<Trip[]> responseEntity = restTemplate.getForEntity(apiUrl, Trip[].class);
+                ResponseEntity<Trip[]> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, Trip[].class);
                 tripsFromDB = responseEntity.getBody();
 
             } catch (Exception e) {
@@ -100,14 +120,18 @@ public class MySQLSynchronizer {
             Trip[] tripsFromDB = {};
             try {
                 db =  DatabaseHelper.getInstance(context);
-                Date lastSync = db.getLastSyncDB(1);
+                Date lastSync = db.getLastSyncDB(2);
                 DateFormat dateFormat = new SimpleDateFormat("yyyy-M-dd HH:mm");
                 String strDate = dateFormat.format(lastSync);
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/trip";
-                apiUrl = apiUrl + "?search=modifyDate>" + strDate + "\\members:1";
+                apiUrl = apiUrl + "?search=modifyDate>" + strDate + "\\members:2";
+                HttpHeaders requestHeaders = new HttpHeaders();
+                Session session = new Session(context);
+                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
+                HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                ResponseEntity<Trip[]> responseEntity = restTemplate.getForEntity(apiUrl, Trip[].class);
+                ResponseEntity<Trip[]> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, Trip[].class);
                 tripsFromDB = responseEntity.getBody();
 
             } catch (Exception e) {
@@ -139,14 +163,18 @@ public class MySQLSynchronizer {
             User[] usersFromDB = {};
             try {
                 db =  DatabaseHelper.getInstance(context);
-                Date lastSync = db.getLastSyncDB(1);
+                Date lastSync = db.getLastSyncDB(2);
                 DateFormat dateFormat = new SimpleDateFormat("yyyy-M-dd HH:mm");
                 String strDate = dateFormat.format(lastSync);
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/user";
-                apiUrl = apiUrl + "?search=createDate>" + strDate + "\\id!1";
+                apiUrl = apiUrl + "?search=createDate>" + strDate;
+                HttpHeaders requestHeaders = new HttpHeaders();
+                Session session = new Session(context);
+                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
+                HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                ResponseEntity<User[]> responseEntity = restTemplate.getForEntity(apiUrl, User[].class);
+                ResponseEntity<User[]> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, User[].class);
                 usersFromDB = responseEntity.getBody();
 
             } catch (Exception e) {
@@ -177,14 +205,18 @@ public class MySQLSynchronizer {
             User[] usersFromDB = {};
             try {
                 db =  DatabaseHelper.getInstance(context);
-                Date lastSync = db.getLastSyncDB(1);
+                Date lastSync = db.getLastSyncDB(2);
                 DateFormat dateFormat = new SimpleDateFormat("yyyy-M-dd HH:mm");
                 String strDate = dateFormat.format(lastSync);
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/user";
                 apiUrl = apiUrl + "?search=modifyDate>" + strDate;
+                HttpHeaders requestHeaders = new HttpHeaders();
+                Session session = new Session(context);
+                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
+                HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                ResponseEntity<User[]> responseEntity = restTemplate.getForEntity(apiUrl, User[].class);
+                ResponseEntity<User[]> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, User[].class);
                 usersFromDB = responseEntity.getBody();
 
             } catch (Exception e) {
@@ -215,10 +247,14 @@ public class MySQLSynchronizer {
             Integer idTrip = params[0];
             try {
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/trip/" + idTrip;
+                HttpHeaders requestHeaders = new HttpHeaders();
+                Session session = new Session(context);
+                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
+                HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                currentTrip = restTemplate.getForObject(apiUrl, Trip.class);
-
+                ResponseEntity<Trip> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, Trip.class);
+                currentTrip = responseEntity.getBody();
             } catch (Exception e) {
                 Log.e("ERROR-GET-TRIP", e.getMessage());
             }
@@ -247,14 +283,18 @@ public class MySQLSynchronizer {
             ToDoObjectWithTrip[] notesFromDB = {};
             try {
                 db =  DatabaseHelper.getInstance(context);
-                Date lastSync = db.getLastSyncDB(1);
+                Date lastSync = db.getLastSyncDB(2);
                 DateFormat dateFormat = new SimpleDateFormat("yyyy-M-dd HH:mm");
                 String strDate = dateFormat.format(lastSync);
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/note";
                 apiUrl = apiUrl + "?search=createDate>" + strDate;
+                HttpHeaders requestHeaders = new HttpHeaders();
+                Session session = new Session(context);
+                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
+                HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                ResponseEntity<ToDoObjectWithTrip[]> responseEntity = restTemplate.getForEntity(apiUrl, ToDoObjectWithTrip[].class);
+                ResponseEntity<ToDoObjectWithTrip[]> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, ToDoObjectWithTrip[].class);
                 notesFromDB = responseEntity.getBody();
 
             } catch (Exception e) {
@@ -287,14 +327,18 @@ public class MySQLSynchronizer {
             ToDoObjectWithTrip[] notesFromDB = {};
             try {
                 db =  DatabaseHelper.getInstance(context);
-                Date lastSync = db.getLastSyncDB(1);
+                Date lastSync = db.getLastSyncDB(2);
                 DateFormat dateFormat = new SimpleDateFormat("yyyy-M-dd HH:mm");
                 String strDate = dateFormat.format(lastSync);
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/note";
                 apiUrl = apiUrl + "?search=modifyDate>" + strDate;
+                HttpHeaders requestHeaders = new HttpHeaders();
+                Session session = new Session(context);
+                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
+                HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                ResponseEntity<ToDoObjectWithTrip[]> responseEntity = restTemplate.getForEntity(apiUrl, ToDoObjectWithTrip[].class);
+                ResponseEntity<ToDoObjectWithTrip[]> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, ToDoObjectWithTrip[].class);
                 notesFromDB = responseEntity.getBody();
 
             } catch (Exception e) {
@@ -320,6 +364,93 @@ public class MySQLSynchronizer {
     }
 
     // Expense
+    private class GetInsertedExpenseReqTask extends AsyncTask<Void, Void, Expense[]> {
+
+        @Override
+        protected Expense[] doInBackground(Void... voids) {
+
+            Expense[] expensesFromDB = {};
+            try {
+                db =  DatabaseHelper.getInstance(context);
+                Date lastSync = db.getLastSyncDB(2);
+                DateFormat dateFormat = new SimpleDateFormat("yyyy-M-dd HH:mm");
+                String strDate = dateFormat.format(lastSync);
+                String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/expense";
+                apiUrl = apiUrl + "?search=createDate>" + strDate;
+                HttpHeaders requestHeaders = new HttpHeaders();
+                Session session = new Session(context);
+                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
+                HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
+                RestTemplate restTemplate = new RestTemplate();
+                restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+                ResponseEntity<Expense[]> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, Expense[].class);
+                expensesFromDB = responseEntity.getBody();
+
+            } catch (Exception e) {
+                Log.e("ERROR-GET-INS-EXPENSES", e.getMessage());
+            }
+
+            return expensesFromDB;
+        }
+
+        @Override
+        protected void onPostExecute(Expense[] expensesFromDB) {
+            syncInsertedExpenses(expensesFromDB);
+        }
+    }
+
+    public void syncInsertedExpenses(final Expense[] expensesFromDB) {
+        List<Integer> trips = db.getAllTripsId();
+        for (int i = 0; i < expensesFromDB.length; i++) {
+            if (trips.contains(expensesFromDB[i].getTrip().getId()))
+                db.addExpense(expensesFromDB[i],1);
+        }
+    }
+
+
+    private class GetUpdatedExpenseReqTask extends AsyncTask<Void, Void, Expense[]> {
+
+        @Override
+        protected Expense[] doInBackground(Void... voids) {
+
+            Expense[] expensesFromDB = {};
+            try {
+                db =  DatabaseHelper.getInstance(context);
+                Date lastSync = db.getLastSyncDB(2);
+                DateFormat dateFormat = new SimpleDateFormat("yyyy-M-dd HH:mm");
+                String strDate = dateFormat.format(lastSync);
+                String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/expense";
+                apiUrl = apiUrl + "?search=modifyDate>" + strDate;
+                HttpHeaders requestHeaders = new HttpHeaders();
+                Session session = new Session(context);
+                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
+                HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
+                RestTemplate restTemplate = new RestTemplate();
+                restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+                ResponseEntity<Expense[]> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, Expense[].class);
+                expensesFromDB = responseEntity.getBody();
+
+            } catch (Exception e) {
+                Log.e("ERROR-GET-UPD-EXPENSES", e.getMessage());
+            }
+
+            return expensesFromDB;
+        }
+
+        @Override
+        protected void onPostExecute(Expense[] expensesFromDB) {
+            syncUpdatedExpenses(expensesFromDB);
+        }
+    }
+
+
+    public void syncUpdatedExpenses(final Expense[] expensesFromDB) {
+        List<Integer> trips = db.getAllTripsId();
+        for (int i = 0; i < expensesFromDB.length; i++) {
+            if(trips.contains(expensesFromDB[i].getTrip().getId()))
+                db.updateExpense(expensesFromDB[i],1);
+        }
+    }
 
     // DeletedItems
     private class GetDeletedRecordReqTask extends AsyncTask<Void, Void, DeletedRecord[]> {
@@ -330,14 +461,18 @@ public class MySQLSynchronizer {
             DeletedRecord[] deletedRecords = {};
             try {
                 db =  DatabaseHelper.getInstance(context);
-                Date lastSync = db.getLastSyncDB(1);
+                Date lastSync = db.getLastSyncDB(2);
                 DateFormat dateFormat = new SimpleDateFormat("yyyy-M-dd HH:mm");
                 String strDate = dateFormat.format(lastSync);
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/deletedrecord";
                 apiUrl = apiUrl + "?search=createDate>" + strDate;
+                HttpHeaders requestHeaders = new HttpHeaders();
+                Session session = new Session(context);
+                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
+                HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                ResponseEntity<DeletedRecord[]> responseEntity = restTemplate.getForEntity(apiUrl, DeletedRecord[].class);
+                ResponseEntity<DeletedRecord[]> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, DeletedRecord[].class);
                 deletedRecords = responseEntity.getBody();
 
             } catch (Exception e) {
@@ -356,6 +491,46 @@ public class MySQLSynchronizer {
     public void syncDeletedRecords(final DeletedRecord[] deletedRecords) {
         for (int i = 0; i < deletedRecords.length; i++) {
             db.deleteRecord(deletedRecords[i]);
+        }
+    }
+
+    // REPORTS
+    private class GetTripReportTask extends AsyncTask<Integer, Void, Expense[]> {
+
+        @Override
+        protected Expense[] doInBackground(Integer... params) {
+            Expense[] reportedFromDB = {};
+            Integer idTrip = params[0];
+            try {
+                String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/expense/report/trip/" +  idTrip;
+                HttpHeaders requestHeaders = new HttpHeaders();
+                Session session = new Session(context);
+                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
+                HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
+                RestTemplate restTemplate = new RestTemplate();
+                restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+                ResponseEntity<Expense[]> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, Expense[].class);
+                reportedFromDB = responseEntity.getBody();
+            } catch (Exception e) {
+                Log.e("ERROR-GET-REPORTS", e.getMessage());
+            }
+            for(Expense report:reportedFromDB){
+                Trip t = new Trip();
+                t.setId(idTrip);
+                report.setTrip(t);
+            }
+            return reportedFromDB;
+        }
+
+        @Override
+        protected void onPostExecute(Expense[] t) {
+            syncReports(t);
+        }
+    }
+
+    private void syncReports(Expense[] reports){
+        for(Expense report:reports){
+            db.addReport(report);
         }
     }
 
