@@ -218,7 +218,7 @@ public class ViewTripActivity extends AppCompatActivity implements ExpenseDialog
     }
 
     private void openComplexExpenseDialog(String expenseType) {
-        AddComplexExpenseDialog addComplexExpenseDialog = new AddComplexExpenseDialog(expenseType);
+        AddComplexExpenseDialog addComplexExpenseDialog = new AddComplexExpenseDialog(expenseType, idCurrentTrip);
         addComplexExpenseDialog.show(getSupportFragmentManager(), "complex expense dialog");
     }
 

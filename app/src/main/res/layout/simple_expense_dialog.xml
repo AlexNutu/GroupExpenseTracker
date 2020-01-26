@@ -8,7 +8,7 @@
         android:id="@+id/productET"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Product name" />
+        android:hint="New Product" />
 
     <EditText
         android:id="@+id/sumET"
