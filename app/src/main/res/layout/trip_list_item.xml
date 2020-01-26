@@ -2,14 +2,71 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:weightSum="100">
 
-    <TextView
-        android:id="@+id/trip_name_item"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:padding="10dp"
-        android:textSize="18dp"
-        android:textStyle="bold" />
+    <LinearLayout
+        android:id="@+id/linearLayoutName"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="50"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tripNameItemTV"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:text="TripName"
+            android:textSize="20dp"
+            android:textStyle="bold"
+            android:layout_weight="60"
+            android:gravity="left"
+            />
+
+        <TextView
+            android:id="@+id/tripDestinationItemTV"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:text="TripDestination"
+            android:textSize="16dp"
+            android:layout_weight="40"
+            android:gravity="right"
+            />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/linearLayoutDates"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="50"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/startDateItemTV"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:text="start-date"
+            android:textSize="14dp"
+            android:layout_weight="50"
+            android:gravity="left"
+            />
+
+        <TextView
+            android:id="@+id/endDateItemTV"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:text="end-date"
+            android:textSize="14dp"
+            android:layout_weight="50"
+            android:gravity="right"
+            />
+
+    </LinearLayout>
+
 
 </LinearLayout>
