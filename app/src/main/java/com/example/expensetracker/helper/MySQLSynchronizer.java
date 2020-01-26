@@ -58,6 +58,7 @@ public class MySQLSynchronizer {
         new GetDeletedRecordReqTask().execute();
     }
     public void synchronizeReports(){
+        db =  DatabaseHelper.getInstance(context);
         db.deleteAllReports();
         List<Integer> trips = db.getAllTripsId();
         for (int i = 0; i < trips.size(); i++) {
