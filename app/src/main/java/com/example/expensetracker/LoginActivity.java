@@ -133,7 +133,7 @@ public class LoginActivity extends AppCompatActivity {
             User userToLoginParam = params[0];
             User resultedUser = new User();
             try {
-                String apiUrl = "http://10.0.2.2:8080/login/";
+                String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/login";
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
                 ResponseEntity<User> userObjectResult = restTemplate.postForEntity(apiUrl, userToLoginParam, User.class);
