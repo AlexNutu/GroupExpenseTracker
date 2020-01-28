@@ -54,11 +54,16 @@ public class LoginActivity extends AppCompatActivity {
         }
         else{
             User loggedUser = db.getLoggedUser();
-            Intent myIntent = new Intent(LoginActivity.this, MainActivity.class);
-            myIntent.putExtra("currentUserObject", loggedUser);
-            myIntent.putExtra("fromActivity", "LoginActivity");
-            startActivity(myIntent);
-            finish();
+            if(loggedUser.getId()!=null) {
+                Intent myIntent = new Intent(LoginActivity.this, MainActivity.class);
+                myIntent.putExtra("currentUserObject", loggedUser);
+                myIntent.putExtra("fromActivity", "LoginActivity");
+                startActivity(myIntent);
+                finish();
+            }else {
+                setActions();
+                Toast.makeText(LoginActivity.this, "You have been logged out!", Toast.LENGTH_SHORT).show();
+            }
         }
 
 

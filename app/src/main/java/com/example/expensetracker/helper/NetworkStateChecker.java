@@ -44,11 +44,13 @@ public class NetworkStateChecker extends BroadcastReceiver {
         if (activeNetwork != null) {
             //if connected to wifi or mobile data plan
             if (activeNetwork.getType() == ConnectivityManager.TYPE_WIFI || activeNetwork.getType() == ConnectivityManager.TYPE_MOBILE) {
-                if(db.getLastSyncDB(userId) == null)
-                    db.addOrUpdateSyncDB(userId);
-                mySqlSynchronizer.synchronizeMySQL();
-                sqLiteSynchronizer.synchronizeSQLite();
-                db.addOrUpdateSyncDB(userId);
+               if(userId != null){
+                    if(db.getLastSyncDB(userId) == null)
+                        db.addOrUpdateSyncDB(userId);
+                    mySqlSynchronizer.synchronizeMySQL();
+                    sqLiteSynchronizer.synchronizeSQLite();
+                   // db.addOrUpdateSyncDB(userId);
+                   }
 
             }
         }

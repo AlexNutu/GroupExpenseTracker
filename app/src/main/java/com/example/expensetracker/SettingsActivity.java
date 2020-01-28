@@ -3,6 +3,7 @@ package com.example.expensetracker;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import android.app.Application;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -95,11 +96,20 @@ public class SettingsActivity extends AppCompatActivity {
         tvSettingsSignOut.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                try {
-                    new LogoutReqTask().execute(currentUser).get();
-                } catch (Exception e) {
-                    e.printStackTrace();
+                if(NetworkStateChecker.isConnected(getApplicationContext())){
+                    try {
+                        new LogoutReqTask().execute(currentUser).get();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
+               else {
+                  db.deleteAllRecords();
+                  session.setCookie(null);
+                  Intent myIntent = new Intent(SettingsActivity.this, LoginActivity.class);
+                  startActivity(myIntent);
+               }
+
             }
         });
     }
@@ -196,6 +206,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Void voids) {
+            db.deleteAllRecords();
         }
     }
 

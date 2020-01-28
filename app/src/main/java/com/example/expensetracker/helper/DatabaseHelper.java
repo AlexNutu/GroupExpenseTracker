@@ -967,6 +967,38 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
+    // Delete all
+    public void deleteAllRecords()
+
+    {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        String delete_expense = "delete from expense";
+        String delete_user_trip = "delete from user_trip";
+        String delete_note = "delete from note";
+        String delete_report = "delete from report";
+        String delete_trip = "delete from trip";
+        String delete_logged = "delete from logged_user";
+        String delete_user = "delete from user_profile";
+        String delete_sync_db = "delete from sync_db";
+
+        try {
+            db.beginTransaction();
+            db.execSQL(delete_user_trip);
+            db.execSQL(delete_expense);
+            db.execSQL(delete_report);
+            db.execSQL(delete_note);
+            db.execSQL(delete_trip);
+            db.execSQL(delete_logged);
+            db.execSQL(delete_user);
+            db.execSQL(delete_sync_db);
+            db.setTransactionSuccessful();
+        } catch (Exception e) {
+            Log.d(TAG, "Error while trying to delete all records from database");
+        } finally {
+            db.endTransaction();
+        }
+    }
 }
 
 
