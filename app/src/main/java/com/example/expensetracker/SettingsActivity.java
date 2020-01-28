@@ -96,7 +96,7 @@ public class SettingsActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 try {
-                    new LogoutReqTask().execute().get();
+                    new LogoutReqTask().execute(currentUser).get();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -165,20 +165,25 @@ public class SettingsActivity extends AppCompatActivity {
         }
     }
 
-    private class LogoutReqTask extends AsyncTask<Void, Void, Void> {
+    private class LogoutReqTask extends AsyncTask<User, Void, Void> {
 
         @Override
-        protected Void doInBackground(Void... voids) {
+        protected Void doInBackground(User... params) {
 
+            User userToLogoutParam = params[0];
             try {
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/logout";
                 HttpHeaders requestHeaders = new HttpHeaders();
                 requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
-                HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
+                HttpEntity requestEntity = new HttpEntity(userToLogoutParam, requestHeaders);
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                ResponseEntity<User> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, null);
-
+                ResponseEntity responseEntity = restTemplate.exchange(apiUrl, HttpMethod.POST, requestEntity, null);
+                if (responseEntity.getStatusCode().value() == 200) {
+                    session.setCookie(null);
+                    Intent myIntent = new Intent(SettingsActivity.this, LoginActivity.class);
+                    startActivity(myIntent);
+                }
             } catch (Exception e) {
                 if (((HttpClientErrorException) e).getStatusCode().value() == 403) {
                     Intent myIntent = new Intent(SettingsActivity.this, LoginActivity.class);
@@ -186,7 +191,6 @@ public class SettingsActivity extends AppCompatActivity {
                 }
                 Log.e("ERROR-LOGOUT", e.getMessage());
             }
-
             return null;
         }
 

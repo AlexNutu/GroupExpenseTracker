@@ -69,35 +69,39 @@ public class NotificationJobService extends JobService {
                         e.printStackTrace();
                     }
 
-                    new Handler(Looper.getMainLooper()).post(new Runnable() {
-                        @Override
-                        public void run() {
+                    if (currentUserObject != null) {
 
-                            if (currentUserObject.getReceiveNotifications()) {
+                        new Handler(Looper.getMainLooper()).post(new Runnable() {
+                            @Override
+                            public void run() {
 
-                                if (notificationManager == null) {
-                                    notificationManager = NotificationManagerCompat.from(getApplicationContext());
-                                }
+                                if (currentUserObject.getReceiveNotifications()) {
 
-                                NotificationDB[] notificationDBList = {};
-                                try {
-                                    notificationDBList = new GetNotificationsForCurrentUserReqTask().execute().get();
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
+                                    if (notificationManager == null) {
+                                        notificationManager = NotificationManagerCompat.from(getApplicationContext());
+                                    }
 
-                                for (int i = 0; i < notificationDBList.length; i++) {
+                                    NotificationDB[] notificationDBList = {};
                                     try {
-                                        // Send notifications at 2 secondds distance
-                                        Thread.sleep(3000);
-                                    } catch (InterruptedException e) {
+                                        notificationDBList = new GetNotificationsForCurrentUserReqTask().execute().get();
+                                    } catch (Exception e) {
                                         e.printStackTrace();
                                     }
-                                    sendNotificationCh1(notificationDBList[i].getMessage());
+
+                                    for (int i = 0; i < notificationDBList.length; i++) {
+                                        try {
+                                            // Send notifications at 2 secondds distance
+                                            Thread.sleep(3000);
+                                        } catch (InterruptedException e) {
+                                            e.printStackTrace();
+                                        }
+                                        sendNotificationCh1(notificationDBList[i].getMessage());
+                                    }
                                 }
                             }
-                        }
-                    });
+                        });
+                    }
+
                     if (jobCanceled) {
                         return;
                     }
@@ -183,7 +187,7 @@ public class NotificationJobService extends JobService {
                 }
                 Log.e("ERROR-GET-User", e.getMessage());
             }
-            return new User();
+            return null;
         }
 
         @Override
