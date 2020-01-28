@@ -16,6 +16,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -24,6 +25,8 @@ import androidx.appcompat.app.AppCompatDialogFragment;
 import com.example.expensetracker.R;
 import com.example.expensetracker.domain.Expense;
 import com.example.expensetracker.domain.ExpenseDialogListener;
+import com.example.expensetracker.helper.DatabaseHelper;
+import com.example.expensetracker.helper.NetworkStateChecker;
 import com.example.expensetracker.helper.Session;
 
 import org.springframework.http.HttpEntity;
@@ -54,6 +57,7 @@ public class AddComplexExpenseDialog extends AppCompatDialogFragment {
     private String selectedProduct;
 
     private AlertDialog d;
+
 
     public AddComplexExpenseDialog(String expenseType, Integer tripId) {
         this.expenseType = expenseType;
@@ -106,17 +110,19 @@ public class AddComplexExpenseDialog extends AppCompatDialogFragment {
         productsSpinner = view.findViewById(R.id.productSpinner);
         ArrayAdapter<String> productsAdapter;
         String[] existingProducts = {};
-        if (expenseType.equals("Group Expense")) {
-            try {
-                existingProducts = new GetExpenseProductsReqTask().execute("group").get();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } else {
-            try {
-                existingProducts = new GetExpenseProductsReqTask().execute("collect").get();
-            } catch (Exception e) {
-                e.printStackTrace();
+        if(NetworkStateChecker.isConnected(getContext())) {
+            if (expenseType.equals("Group Expense")) {
+                try {
+                    existingProducts = new GetExpenseProductsReqTask().execute("group").get();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else {
+                try {
+                    existingProducts = new GetExpenseProductsReqTask().execute("collect").get();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
         productsAdapter = new ArrayAdapter<>(this.getContext(), android.R.layout.simple_spinner_item,
@@ -142,65 +148,87 @@ public class AddComplexExpenseDialog extends AppCompatDialogFragment {
 
         expenseTypeSpinner = view.findViewById(R.id.expenseTypeSpinner);
         ArrayAdapter<CharSequence> expenseTypeAdapter;
-        if (expenseType.equals("Group Expense")) {
-            expenseTypeAdapter = ArrayAdapter.createFromResource(this.getContext(),
-                    R.array.allGroupExpenseTypes, android.R.layout.simple_spinner_item);
-        } else {
-            expenseTypeAdapter = ArrayAdapter.createFromResource(this.getContext(),
-                    R.array.allCollectExpenseTypes, android.R.layout.simple_spinner_item);
+        if(NetworkStateChecker.isConnected(getContext())) {
+            if (expenseType.equals("Group Expense")) {
+                expenseTypeAdapter = ArrayAdapter.createFromResource(this.getContext(),
+                        R.array.allGroupExpenseTypes, android.R.layout.simple_spinner_item);
+            } else {
+                expenseTypeAdapter = ArrayAdapter.createFromResource(this.getContext(),
+                        R.array.allCollectExpenseTypes, android.R.layout.simple_spinner_item);
+            }
+        }else{
+            if (expenseType.equals("Group Expense")) {
+                expenseTypeAdapter = ArrayAdapter.createFromResource(this.getContext(),
+                        R.array.groupExpenseTypesOffline, android.R.layout.simple_spinner_item);
+            } else {
+                expenseTypeAdapter = ArrayAdapter.createFromResource(this.getContext(),
+                        R.array.collectExpenseTypesOffline, android.R.layout.simple_spinner_item);
+            }
         }
         expenseTypeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         expenseTypeSpinner.setAdapter(expenseTypeAdapter);
         expenseTypeSpinner.setOnItemSelectedListener(expenseTypeListener);
 
+        if(NetworkStateChecker.isConnected(getContext())) {
+            newProductBTN = view.findViewById(R.id.newExpenseBTN);
+            existingProductBTN = view.findViewById(R.id.existingExpenseBTN);
+            TextView lineTV = view.findViewById(R.id.lineText);
+            lineTV.setVisibility(View.VISIBLE);
+            newProductBTN.setVisibility(View.VISIBLE);
+            existingProductBTN.setVisibility(View.VISIBLE);
+            newProductBTN.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    productNameET.setVisibility(View.VISIBLE);
+                    productsSpinner.setVisibility(View.GONE);
+                    checkEmptyFieldValues();
 
-        newProductBTN = view.findViewById(R.id.newExpenseBTN);
-        existingProductBTN = view.findViewById(R.id.existingExpenseBTN);
-        newProductBTN.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                productNameET.setVisibility(View.VISIBLE);
-                productsSpinner.setVisibility(View.GONE);
-                checkEmptyFieldValues();
-
-                int expenseTypeId = -1;
-                if (expenseType.equals("Group Expense")) {
-                    expenseTypeId = R.array.allGroupExpenseTypes;
-                } else {
-                    expenseTypeId = R.array.allCollectExpenseTypes;
+                    int expenseTypeId = -1;
+                    if (expenseType.equals("Group Expense")) {
+                        expenseTypeId = R.array.allGroupExpenseTypes;
+                    } else {
+                        expenseTypeId = R.array.allCollectExpenseTypes;
+                    }
+                    ArrayAdapter<CharSequence> expenseTypeAdapter;
+                    expenseTypeAdapter = ArrayAdapter.createFromResource(getContext(),
+                            expenseTypeId, android.R.layout.simple_spinner_item);
+                    expenseTypeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    expenseTypeSpinner.setAdapter(expenseTypeAdapter);
+                    expenseTypeSpinner.setOnItemSelectedListener(expenseTypeListener);
                 }
-                ArrayAdapter<CharSequence> expenseTypeAdapter;
-                expenseTypeAdapter = ArrayAdapter.createFromResource(getContext(),
-                        expenseTypeId, android.R.layout.simple_spinner_item);
-                expenseTypeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                expenseTypeSpinner.setAdapter(expenseTypeAdapter);
-                expenseTypeSpinner.setOnItemSelectedListener(expenseTypeListener);
-            }
-        });
-        existingProductBTN.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                productNameET.setVisibility(View.GONE);
-                productsSpinner.setVisibility(View.VISIBLE);
-                checkEmptyFieldValues();
+            });
+            existingProductBTN.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    productNameET.setVisibility(View.GONE);
+                    productsSpinner.setVisibility(View.VISIBLE);
+                    checkEmptyFieldValues();
 
-                int expenseTypeId = -1;
-                if (expenseType.equals("Group Expense")) {
-                    expenseTypeId = R.array.groupExpenseTypes;
-                } else {
-                    expenseTypeId = R.array.collectExpenseTypes;
+                    int expenseTypeId = -1;
+                    if (expenseType.equals("Group Expense")) {
+                        expenseTypeId = R.array.groupExpenseTypes;
+                    } else {
+                        expenseTypeId = R.array.collectExpenseTypes;
+                    }
+                    ArrayAdapter<CharSequence> expenseTypeAdapter;
+                    expenseTypeAdapter = ArrayAdapter.createFromResource(getContext(),
+                            expenseTypeId, android.R.layout.simple_spinner_item);
+                    expenseTypeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    expenseTypeSpinner.setAdapter(expenseTypeAdapter);
+                    expenseTypeSpinner.setOnItemSelectedListener(expenseTypeListener);
                 }
-                ArrayAdapter<CharSequence> expenseTypeAdapter;
-                expenseTypeAdapter = ArrayAdapter.createFromResource(getContext(),
-                        expenseTypeId, android.R.layout.simple_spinner_item);
-                expenseTypeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                expenseTypeSpinner.setAdapter(expenseTypeAdapter);
-                expenseTypeSpinner.setOnItemSelectedListener(expenseTypeListener);
-            }
-        });
+            });
 
-        if (existingProducts.length == 0) {
-            existingProductBTN.setEnabled(false);
+            if (existingProducts.length == 0) {
+                existingProductBTN.setEnabled(false);
+            }
+        }else{
+            TextView lineTV = view.findViewById(R.id.lineText);
+            lineTV.setVisibility(View.GONE);
+            newProductBTN = view.findViewById(R.id.newExpenseBTN);
+            existingProductBTN = view.findViewById(R.id.existingExpenseBTN);
+            newProductBTN.setVisibility(View.GONE);
+            existingProductBTN.setVisibility(View.GONE);
         }
 
         return d;

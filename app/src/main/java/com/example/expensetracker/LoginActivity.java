@@ -39,6 +39,7 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         session = new Session(getApplicationContext());
+        db = DatabaseHelper.getInstance(this);
 
         Intent intent = getIntent();
         String fromActivity = intent.getStringExtra("fromActivity");
@@ -52,7 +53,7 @@ public class LoginActivity extends AppCompatActivity {
             setActions();
         }
         else{
-            User loggedUser =  new User(2L, "Andreea","Gr","","",true,"");
+            User loggedUser = db.getLoggedUser();
             Intent myIntent = new Intent(LoginActivity.this, MainActivity.class);
             myIntent.putExtra("currentUserObject", loggedUser);
             myIntent.putExtra("fromActivity", "LoginActivity");
@@ -97,6 +98,7 @@ public class LoginActivity extends AppCompatActivity {
                     }
 
                     if (resultedUser.getErrorMessage() == null || resultedUser.getErrorMessage().equals("")) {
+                        db.addLoggedUser(resultedUser);
                         Intent myIntent = new Intent(LoginActivity.this, MainActivity.class);
                         myIntent.putExtra("currentUserObject", resultedUser);
                         myIntent.putExtra("fromActivity", "LoginActivity");
@@ -133,7 +135,7 @@ public class LoginActivity extends AppCompatActivity {
             User userToLoginParam = params[0];
             User resultedUser = new User();
             try {
-                String apiUrl = "http://10.0.2.2:8080/login/";
+                String apiUrl = "http://10.0.2.2:8080/login";
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
                 ResponseEntity<User> userObjectResult = restTemplate.postForEntity(apiUrl, userToLoginParam, User.class);

@@ -14,6 +14,8 @@ import android.widget.TextView;
 
 import com.example.expensetracker.domain.Trip;
 import com.example.expensetracker.domain.User;
+import com.example.expensetracker.helper.DatabaseHelper;
+import com.example.expensetracker.helper.NetworkStateChecker;
 import com.example.expensetracker.helper.Session;
 
 import org.springframework.http.HttpEntity;
@@ -36,6 +38,7 @@ public class SettingsActivity extends AppCompatActivity {
     private TextView tvSettingsSignOut;
 
     private Session session;
+    private DatabaseHelper db;
 
 
     @Override
@@ -46,18 +49,22 @@ public class SettingsActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         session = new Session(getApplicationContext());
+        db = DatabaseHelper.getInstance(this);
 
         Intent receivedIntent = getIntent();
-        if (receivedIntent != null) {
-            User oldCurrentUser = (User) receivedIntent.getSerializableExtra("currentUser");
-            try {
-                currentUser = new GetUserReqTask().execute(oldCurrentUser.getId()).get();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+        if(NetworkStateChecker.isConnected(this)) {
+            if (receivedIntent != null) {
+                User oldCurrentUser = (User) receivedIntent.getSerializableExtra("currentUser");
+                try {
+                    currentUser = new GetUserReqTask().execute(oldCurrentUser.getId()).get();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
-        }
+        }else
+            currentUser = db.getLoggedUser();
 
         userEmailTV = findViewById(R.id.tvSettingsEmail);
         userFullNameTV = findViewById(R.id.tvSettingsFullName);
@@ -73,10 +80,15 @@ public class SettingsActivity extends AppCompatActivity {
         notificationsSwitch.setChecked(currentUser.getReceiveNotifications());
         notificationsSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                try {
-                    new UpdateUserReqTask().execute(isChecked).get();
-                } catch (Exception e) {
-                    e.printStackTrace();
+                if(NetworkStateChecker.isConnected(getApplicationContext())) {
+                    try {
+                        new UpdateUserReqTask().execute(isChecked).get();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }else{
+                    currentUser.setReceiveNotifications(isChecked);
+                    db.updateLoggedUser(currentUser);
                 }
             }
         });

@@ -2,18 +2,19 @@ package com.example.expensetracker.domain;
 
 public class ToDoObjectWithTrip {
 
-    private long id;
+    private Long id;
     private Boolean approved;
     private String message;
     private User user;
     private Trip trip;
     private String createDate;
     private String modifyDate;
+    private Integer status;
 
     public ToDoObjectWithTrip() {
     }
 
-    public ToDoObjectWithTrip(long id, Boolean approved, String message, User user, Trip trip, String createDate, String modifyDate) {
+    public ToDoObjectWithTrip(Long id, Boolean approved, String message, User user, Trip trip, String createDate, String modifyDate) {
         this.id = id;
         this.approved = approved;
         this.message = message;
@@ -31,11 +32,11 @@ public class ToDoObjectWithTrip {
         this.approved = approved;
     }
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -78,4 +79,8 @@ public class ToDoObjectWithTrip {
     public void setTrip(Trip trip) {
         this.trip = trip;
     }
+
+    public Integer getStatus() { return status; }
+
+    public void setStatus(Integer status) { this.status = status; }
 }

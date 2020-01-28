@@ -18,7 +18,8 @@ public class NetworkStateChecker extends BroadcastReceiver {
     }
 
     //context and database helper object
-    private MySQLSynchronizer mySQLSynchronizer;
+    private SQLiteSynchronizer sqLiteSynchronizer;
+    private MySqlSynchronizer mySqlSynchronizer;
     private DatabaseHelper db;
     private Context context;
 
@@ -27,26 +28,27 @@ public class NetworkStateChecker extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
 
         this.context = context;
+        this.db =  DatabaseHelper.getInstance(context);
 
-        this.mySQLSynchronizer = new MySQLSynchronizer(context, db);
+        this.sqLiteSynchronizer = new SQLiteSynchronizer(context, db);
+        this.mySqlSynchronizer = new MySqlSynchronizer(context, db);
 
-        db =  DatabaseHelper.getInstance(context);
+
 
         ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
 
+        User loggedUser = db.getLoggedUser();
+        Long userId = loggedUser.getId();
         //if there is a network
         if (activeNetwork != null) {
             //if connected to wifi or mobile data plan
             if (activeNetwork.getType() == ConnectivityManager.TYPE_WIFI || activeNetwork.getType() == ConnectivityManager.TYPE_MOBILE) {
-                if(db.getLastSyncDB(2) == null)
-                    db.addOrUpdateSyncDB(2);
-                mySQLSynchronizer.synchronizeUsers();
-                mySQLSynchronizer.synchronizeTrips();
-                mySQLSynchronizer.synchronizeNotes();
-                mySQLSynchronizer.synchronizeDeleted();
-                mySQLSynchronizer.synchronizeExpenses();
-                mySQLSynchronizer.synchronizeReports();
+                if(db.getLastSyncDB(userId) == null)
+                    db.addOrUpdateSyncDB(userId);
+                mySqlSynchronizer.synchronizeMySQL();
+                sqLiteSynchronizer.synchronizeSQLite();
+                db.addOrUpdateSyncDB(userId);
 
             }
         }

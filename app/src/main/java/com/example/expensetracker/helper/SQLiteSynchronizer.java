@@ -23,16 +23,25 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
-public class MySQLSynchronizer {
+public class SQLiteSynchronizer {
 
     private Context context;
     private DatabaseHelper db;
 
-    public MySQLSynchronizer(Context context, DatabaseHelper db) {
+    public SQLiteSynchronizer(Context context, DatabaseHelper db) {
         this.context = context;
         this.db = db;
     }
 
+    public void synchronizeSQLite(){
+        synchronizeUsers();
+        Long userId = db.getLoggedUser().getId();
+        synchronizeTrips(userId);
+        synchronizeNotes();
+        synchronizeDeleted();
+        synchronizeExpenses();
+        synchronizeReports();
+    }
 
     public void synchronizeUsers(){
         new GetInsertedUsersReqTask().execute();
@@ -40,9 +49,9 @@ public class MySQLSynchronizer {
     }
 
 
-    public void synchronizeTrips(){
-        new GetInsertedTripsReqTask().execute();
-        new GetUpdatedTripsReqTask().execute();
+    public void synchronizeTrips(Long userId){
+        new GetInsertedTripsReqTask().execute(userId);
+        new GetUpdatedTripsReqTask().execute(userId);
     }
 
     public void synchronizeNotes(){
@@ -69,11 +78,12 @@ public class MySQLSynchronizer {
 
     // Trip
 
-    private class GetInsertedTripsReqTask extends AsyncTask<Void, Void, Trip[]> {
+    private class GetInsertedTripsReqTask extends AsyncTask<Long, Void, Trip[]> {
 
         @Override
-        protected Trip[] doInBackground(Void... voids) {
+        protected Trip[] doInBackground(Long... params) {
 
+            Long userId = params[0];
             Trip[] tripsFromDB = {};
             try {
                 db =  DatabaseHelper.getInstance(context);
@@ -81,7 +91,7 @@ public class MySQLSynchronizer {
                 DateFormat dateFormat = new SimpleDateFormat("yyyy-M-dd HH:mm");
                 String strDate = dateFormat.format(lastSync);
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/trip";
-                apiUrl = apiUrl + "?search=createDate>" + strDate + "\\members:2";
+                apiUrl = apiUrl + "?search=createDate>" + strDate + "\\members:"+userId;
                 HttpHeaders requestHeaders = new HttpHeaders();
                 Session session = new Session(context);
                 requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
@@ -113,11 +123,12 @@ public class MySQLSynchronizer {
     }
 
 
-    private class GetUpdatedTripsReqTask extends AsyncTask<Void, Void, Trip[]> {
+    private class GetUpdatedTripsReqTask extends AsyncTask<Long, Void, Trip[]> {
 
         @Override
-        protected Trip[] doInBackground(Void... voids) {
+        protected Trip[] doInBackground(Long... params) {
 
+            Long userId = params[0];
             Trip[] tripsFromDB = {};
             try {
                 db =  DatabaseHelper.getInstance(context);
@@ -125,7 +136,7 @@ public class MySQLSynchronizer {
                 DateFormat dateFormat = new SimpleDateFormat("yyyy-M-dd HH:mm");
                 String strDate = dateFormat.format(lastSync);
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/trip";
-                apiUrl = apiUrl + "?search=modifyDate>" + strDate + "\\members:2";
+                apiUrl = apiUrl + "?search=modifyDate>" + strDate + "\\members:"+userId;
                 HttpHeaders requestHeaders = new HttpHeaders();
                 Session session = new Session(context);
                 requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());

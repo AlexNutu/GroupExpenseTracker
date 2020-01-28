@@ -325,15 +325,22 @@ public class ViewTripActivity extends AppCompatActivity implements ExpenseDialog
         currentTrip.setId(idCurrentTrip);
 
         Expense e = new Expense(expenseType, productName, Float.valueOf(cost), selectedCurrency, Float.valueOf(percentage), currentUserObject, currentTrip);
-        try {
-            Expense expenseResponse = new AddExpenseReqTask().execute(e).get();
-            if (expenseResponse.getErrorMessage() != null) {
-                showToast(expenseResponse.getErrorMessage(), "error");
-            } else {
-                showToast(e.getExpensiveType() + " added successfully", "success");
+        if(NetworkStateChecker.isConnected(this)) {
+            try {
+                Expense expenseResponse = new AddExpenseReqTask().execute(e).get();
+                if (expenseResponse.getErrorMessage() != null) {
+                    showToast(expenseResponse.getErrorMessage(), "error");
+                } else {
+                    showToast(e.getExpensiveType() + " added successfully", "success");
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
-        } catch (Exception ex) {
-            ex.printStackTrace();
         }
+        else {
+            db.addExpense(e,0);
+            showToast(e.getExpensiveType() + " added successfully", "success");
+        }
+
     }
 }

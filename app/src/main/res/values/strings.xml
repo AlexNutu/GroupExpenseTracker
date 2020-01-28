@@ -20,6 +20,14 @@
         <item>Final Collect Expense</item>
     </string-array>
 
+    <string-array name="collectExpenseTypesOffline">
+        <item>Initial Collect Expense</item>
+    </string-array>
+
+    <string-array name="groupExpenseTypesOffline">
+        <item>Initial Group Expense</item>
+    </string-array>
+
     <string-array name="currencies">
         <item>RON</item>
         <item>EUR</item>
