@@ -18,60 +18,56 @@
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
+            android:layout_height="match_parent"
             android:background="?attr/colorPrimary"
             app:popupTheme="@style/AppTheme.PopupOverlay" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <TextView
-        android:id="@+id/tvViewTrip"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="View Trip"
-        android:textAllCaps="false"
-        android:textSize="24sp"
-        android:textStyle="bold"
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/constraintLayout2"
+        android:layout_width="match_parent"
+        android:layout_height="195dp"
+        android:background="@mipmap/tr1"
+        android:orientation="vertical"
+        android:padding="@dimen/activity_horizontal_margin"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/appBarLayout"
-        app:layout_constraintVertical_bias="0.175" />
+        app:layout_constraintTop_toBottomOf="@+id/appBarLayout"
+        app:layout_constraintVertical_bias="0.122">
 
-    <ImageButton
-        android:id="@+id/viewMembersBtn"
-        android:layout_width="53dp"
-        android:layout_height="48dp"
-        android:background="@android:drawable/ic_menu_my_calendar"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.98"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/appBarLayout" />
+        <TextView
+            android:id="@+id/tvViewTrip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="View Trip"
+            android:textAllCaps="false"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.051"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.827" />
 
-    <ImageButton
-        android:id="@+id/genReportBtn"
-        android:layout_width="45dp"
-        android:layout_height="45dp"
-        android:background="@android:drawable/ic_menu_today"
-        app:layout_constraintEnd_toStartOf="@+id/viewMembersBtn"
-        app:layout_constraintHorizontal_bias="0.023"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/appBarLayout" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <com.getbase.floatingactionbutton.FloatingActionsMenu
+        android:id="@+id/floatingActionsMenu"
         android:layout_width="100dp"
-        android:layout_height="171dp"
-        android:layout_marginTop="219dp"
+        android:layout_height="150dp"
         app:fab_addButtonColorNormal="@color/colorPrimary"
         app:fab_addButtonColorPressed="@color/green_pressed"
         app:fab_addButtonPlusIconColor="@color/cross"
         app:fab_labelStyle="@style/custom_fab"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.979"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tvViewTrip"
-        app:layout_constraintVertical_bias="0.909"
+        app:layout_constraintTop_toBottomOf="@+id/constraintLayout2"
+        app:layout_constraintVertical_bias="1.0"
         app:srcCompat="@android:drawable/ic_input_add">
 
         <com.getbase.floatingactionbutton.FloatingActionButton
@@ -106,34 +102,23 @@
 
     </com.getbase.floatingactionbutton.FloatingActionsMenu>
 
-    <ImageButton
-        android:id="@+id/toDoListBtn"
-        android:layout_width="45dp"
-        android:layout_height="42dp"
-        android:layout_marginBottom="18dp"
-        android:background="@drawable/ic_format_list_numbered_black_24dp"
-        app:layout_constraintBottom_toTopOf="@+id/tvViewTrip"
-        app:layout_constraintEnd_toStartOf="@+id/viewMembersBtn"
-        app:layout_constraintStart_toEndOf="@+id/genReportBtn" />
-
     <TextView
         android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="36dp"
+        android:layout_marginStart="36dp"
+        android:layout_marginTop="32dp"
         android:text="Trip Destination"
-        android:textStyle="bold"
         android:textSize="20dp"
-        app:layout_constraintBottom_toTopOf="@+id/tripDestinationTV"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.147"
-        app:layout_constraintStart_toStartOf="parent" />
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/constraintLayout2" />
 
     <TextView
         android:id="@+id/tripDestinationTV"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="56dp"
+        android:layout_marginBottom="44dp"
         android:text="TextView"
         app:layout_constraintBottom_toTopOf="@+id/textView2"
         app:layout_constraintEnd_toEndOf="parent"
@@ -144,20 +129,20 @@
         android:id="@+id/textView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="36dp"
+        android:layout_marginBottom="40dp"
         android:text="Trip Start Date"
-        android:textStyle="bold"
         android:textSize="20dp"
+        android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@+id/tripStartDateTV"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.147"
+        app:layout_constraintHorizontal_bias="0.148"
         app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
         android:id="@+id/tripStartDateTV"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="56dp"
+        android:layout_marginBottom="40dp"
         android:text="TextView"
         app:layout_constraintBottom_toTopOf="@+id/textView3"
         app:layout_constraintEnd_toEndOf="parent"
@@ -170,8 +155,8 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="36dp"
         android:text="Trip End Date"
-        android:textStyle="bold"
         android:textSize="20dp"
+        android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@+id/tripEndDateTV"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.147"
@@ -181,12 +166,47 @@
         android:id="@+id/tripEndDateTV"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="172dp"
+        android:layout_marginBottom="56dp"
         android:text="TextView"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.147"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <ImageButton
+        android:id="@+id/toDoListBtn"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginBottom="12dp"
+        android:background="@android:drawable/ic_menu_agenda"
+        app:layout_constraintBottom_toTopOf="@+id/constraintLayout2"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.114"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/appBarLayout" />
+
+    <ImageButton
+        android:id="@+id/viewMembersBtn"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:background="@android:drawable/ic_menu_my_calendar"
+        app:layout_constraintBottom_toTopOf="@+id/constraintLayout2"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.739"
+        app:layout_constraintStart_toEndOf="@+id/genReportBtn"
+        app:layout_constraintTop_toBottomOf="@+id/appBarLayout"
+        app:layout_constraintVertical_bias="0.518" />
+
+    <ImageButton
+        android:id="@+id/genReportBtn"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:background="@android:drawable/ic_menu_today"
+        app:layout_constraintBottom_toTopOf="@+id/constraintLayout2"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/appBarLayout" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

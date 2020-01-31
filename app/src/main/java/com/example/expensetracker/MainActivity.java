@@ -39,10 +39,13 @@ import com.example.expensetracker.helper.Session;
 import com.example.expensetracker.helper.NetworkStateChecker;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import org.apache.http.conn.ConnectTimeoutException;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -50,6 +53,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class MainActivity extends AppCompatActivity  implements NetworkStateChecker.ConnectivityListener {
@@ -324,7 +328,7 @@ public class MainActivity extends AppCompatActivity  implements NetworkStateChec
     public void onConnectivityStateChange() {
         if(NetworkStateChecker.isConnected(this)){
             addTripButton();
-            attachTripsFromServerDB();
+            //attachTripsFromServerDB();
         }
         else {
             FloatingActionButton addTrip = (FloatingActionButton) findViewById(R.id.floatingAddTripButton);
@@ -338,27 +342,44 @@ public class MainActivity extends AppCompatActivity  implements NetworkStateChec
         @Override
         protected Trip[] doInBackground(Void... voids) {
 
+            final int MAX_RETRY=3;
+            int iLoop;
+            boolean bSuccess=true;
             Trip[] tripsFromDB = {};
-            try {
-                String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/trip?page=" + pageNumber + "&size=10&search=members:" + currentUserObject.getId();
-                HttpHeaders requestHeaders = new HttpHeaders();
-                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
-                HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
-                RestTemplate restTemplate = new RestTemplate();
-                restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                ResponseEntity<Trip[]> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, Trip[].class);
-                tripsFromDB = responseEntity.getBody();
 
-            } catch (Exception e) {
-                if (((HttpClientErrorException) e).getStatusCode().value() == 403) {
-                    Intent myIntent = new Intent(MainActivity.this, LoginActivity.class);
-                    startActivity(myIntent);
+            for (iLoop=0; iLoop<MAX_RETRY; iLoop++) {
+                try {
+                    String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/trip?page=" + pageNumber + "&size=10&search=members:" + currentUserObject.getId();
+                    HttpHeaders requestHeaders = new HttpHeaders();
+                    requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
+                    HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
+                    HttpComponentsClientHttpRequestFactory clientHttpRequestFactory
+                            = new HttpComponentsClientHttpRequestFactory();
+                    //Connect timeout
+                    clientHttpRequestFactory.setConnectTimeout(1000);
+                    RestTemplate restTemplate = new RestTemplate(clientHttpRequestFactory);
+                    restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+                    ResponseEntity<Trip[]> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, Trip[].class);
+                    tripsFromDB = responseEntity.getBody();
+                    iLoop = 0;
+                    break;
                 }
-                Log.e("ERROR-GET-TRIPS", e.getMessage());
-                tripsFromDB = db.getAllTrips().toArray(new Trip[0]);
-            }
+                catch (HttpClientErrorException e) {
+                    bSuccess = false;
+                    if (e.getStatusCode().value() == 403){
+                        Intent myIntent = new Intent(MainActivity.this, LoginActivity.class);
+                        startActivity(myIntent);
+                    }
 
-            return tripsFromDB;
+                }
+                catch (Exception e){
+                    bSuccess = false;
+                    Log.e("ERROR-GET-TRIPS", e.getMessage());
+                }
+            }
+                if(bSuccess == false)
+                    tripsFromDB = db.getAllTrips().toArray(new Trip[0]);
+                return tripsFromDB;
         }
 
         @Override

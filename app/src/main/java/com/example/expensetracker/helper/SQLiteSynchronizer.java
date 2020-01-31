@@ -34,18 +34,18 @@ public class SQLiteSynchronizer {
     }
 
     public void synchronizeSQLite(){
-        synchronizeUsers();
         Long userId = db.getLoggedUser().getId();
+        synchronizeUsers(userId);
         synchronizeTrips(userId);
-        synchronizeNotes();
-        synchronizeDeleted();
-        synchronizeExpenses();
+        synchronizeNotes(userId);
+        synchronizeDeleted(userId);
+        synchronizeExpenses(userId);
         synchronizeReports();
     }
 
-    public void synchronizeUsers(){
-        new GetInsertedUsersReqTask().execute();
-        new GetUpdatedUsersReqTask().execute();
+    public void synchronizeUsers(Long userId){
+        new GetInsertedUsersReqTask().execute(userId);
+        new GetUpdatedUsersReqTask().execute(userId);
     }
 
 
@@ -54,17 +54,17 @@ public class SQLiteSynchronizer {
         new GetUpdatedTripsReqTask().execute(userId);
     }
 
-    public void synchronizeNotes(){
-        new GetInsertedNoteReqTask().execute();
-        new GetUpdatedNoteReqTask().execute();
+    public void synchronizeNotes(Long userId){
+        new GetInsertedNoteReqTask().execute(userId);
+        new GetUpdatedNoteReqTask().execute(userId);
     }
 
-    public void synchronizeExpenses(){
-        new GetInsertedExpenseReqTask().execute();
-        new GetUpdatedExpenseReqTask().execute();
+    public void synchronizeExpenses(Long userId){
+        new GetInsertedExpenseReqTask().execute(userId);
+        new GetUpdatedExpenseReqTask().execute(userId);
     }
-    public void synchronizeDeleted(){
-        new GetDeletedRecordReqTask().execute();
+    public void synchronizeDeleted(Long userId){
+        new GetDeletedRecordReqTask().execute(userId);
     }
     public void synchronizeReports(){
         db =  DatabaseHelper.getInstance(context);
@@ -87,7 +87,7 @@ public class SQLiteSynchronizer {
             Trip[] tripsFromDB = {};
             try {
                 db =  DatabaseHelper.getInstance(context);
-                Date lastSync = db.getLastSyncDB(2);
+                Date lastSync = db.getLastSyncDB(userId);
                 DateFormat dateFormat = new SimpleDateFormat("yyyy-M-dd HH:mm");
                 String strDate = dateFormat.format(lastSync);
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/trip";
@@ -132,7 +132,7 @@ public class SQLiteSynchronizer {
             Trip[] tripsFromDB = {};
             try {
                 db =  DatabaseHelper.getInstance(context);
-                Date lastSync = db.getLastSyncDB(2);
+                Date lastSync = db.getLastSyncDB(userId);
                 DateFormat dateFormat = new SimpleDateFormat("yyyy-M-dd HH:mm");
                 String strDate = dateFormat.format(lastSync);
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/trip";
@@ -167,15 +167,16 @@ public class SQLiteSynchronizer {
     }
 
     // Synchronize Users
-    private class GetInsertedUsersReqTask extends AsyncTask<Void, Void, User[]> {
+    private class GetInsertedUsersReqTask extends AsyncTask<Long, Void, User[]> {
 
         @Override
-        protected User[] doInBackground(Void... voids) {
+        protected User[] doInBackground(Long... params) {
 
+            Long userId = params[0];
             User[] usersFromDB = {};
             try {
                 db =  DatabaseHelper.getInstance(context);
-                Date lastSync = db.getLastSyncDB(2);
+                Date lastSync = db.getLastSyncDB(userId);
                 DateFormat dateFormat = new SimpleDateFormat("yyyy-M-dd HH:mm");
                 String strDate = dateFormat.format(lastSync);
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/user";
@@ -209,15 +210,16 @@ public class SQLiteSynchronizer {
     }
 
 
-    private class GetUpdatedUsersReqTask extends AsyncTask<Void, Void, User[]> {
+    private class GetUpdatedUsersReqTask extends AsyncTask<Long, Void, User[]> {
 
         @Override
-        protected User[] doInBackground(Void... voids) {
+        protected User[] doInBackground(Long... params) {
 
+            Long userId = params[0];
             User[] usersFromDB = {};
             try {
                 db =  DatabaseHelper.getInstance(context);
-                Date lastSync = db.getLastSyncDB(2);
+                Date lastSync = db.getLastSyncDB(userId);
                 DateFormat dateFormat = new SimpleDateFormat("yyyy-M-dd HH:mm");
                 String strDate = dateFormat.format(lastSync);
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/user";
@@ -287,15 +289,16 @@ public class SQLiteSynchronizer {
     }
 
     // Note
-    private class GetInsertedNoteReqTask extends AsyncTask<Void, Void, ToDoObjectWithTrip[]> {
+    private class GetInsertedNoteReqTask extends AsyncTask<Long, Void, ToDoObjectWithTrip[]> {
 
         @Override
-        protected ToDoObjectWithTrip[] doInBackground(Void... voids) {
+        protected ToDoObjectWithTrip[] doInBackground(Long... params) {
 
+            Long userId = params[0];
             ToDoObjectWithTrip[] notesFromDB = {};
             try {
                 db =  DatabaseHelper.getInstance(context);
-                Date lastSync = db.getLastSyncDB(2);
+                Date lastSync = db.getLastSyncDB(userId);
                 DateFormat dateFormat = new SimpleDateFormat("yyyy-M-dd HH:mm");
                 String strDate = dateFormat.format(lastSync);
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/note";
@@ -331,15 +334,16 @@ public class SQLiteSynchronizer {
     }
 
 
-    private class GetUpdatedNoteReqTask extends AsyncTask<Void, Void, ToDoObjectWithTrip[]> {
+    private class GetUpdatedNoteReqTask extends AsyncTask<Long, Void, ToDoObjectWithTrip[]> {
 
         @Override
-        protected ToDoObjectWithTrip[] doInBackground(Void... voids) {
+        protected ToDoObjectWithTrip[] doInBackground(Long... params) {
 
+            Long userId = params[0];
             ToDoObjectWithTrip[] notesFromDB = {};
             try {
                 db =  DatabaseHelper.getInstance(context);
-                Date lastSync = db.getLastSyncDB(2);
+                Date lastSync = db.getLastSyncDB(userId);
                 DateFormat dateFormat = new SimpleDateFormat("yyyy-M-dd HH:mm");
                 String strDate = dateFormat.format(lastSync);
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/note";
@@ -376,15 +380,16 @@ public class SQLiteSynchronizer {
     }
 
     // Expense
-    private class GetInsertedExpenseReqTask extends AsyncTask<Void, Void, Expense[]> {
+    private class GetInsertedExpenseReqTask extends AsyncTask<Long, Void, Expense[]> {
 
         @Override
-        protected Expense[] doInBackground(Void... voids) {
+        protected Expense[] doInBackground(Long... params) {
 
+            Long userId = params[0];
             Expense[] expensesFromDB = {};
             try {
                 db =  DatabaseHelper.getInstance(context);
-                Date lastSync = db.getLastSyncDB(2);
+                Date lastSync = db.getLastSyncDB(userId);
                 DateFormat dateFormat = new SimpleDateFormat("yyyy-M-dd HH:mm");
                 String strDate = dateFormat.format(lastSync);
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/expense";
@@ -420,15 +425,16 @@ public class SQLiteSynchronizer {
     }
 
 
-    private class GetUpdatedExpenseReqTask extends AsyncTask<Void, Void, Expense[]> {
+    private class GetUpdatedExpenseReqTask extends AsyncTask<Long, Void, Expense[]> {
 
         @Override
-        protected Expense[] doInBackground(Void... voids) {
+        protected Expense[] doInBackground(Long... params) {
 
+            Long userId = params[0];
             Expense[] expensesFromDB = {};
             try {
                 db =  DatabaseHelper.getInstance(context);
-                Date lastSync = db.getLastSyncDB(2);
+                Date lastSync = db.getLastSyncDB(userId);
                 DateFormat dateFormat = new SimpleDateFormat("yyyy-M-dd HH:mm");
                 String strDate = dateFormat.format(lastSync);
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/expense";
@@ -465,15 +471,16 @@ public class SQLiteSynchronizer {
     }
 
     // DeletedItems
-    private class GetDeletedRecordReqTask extends AsyncTask<Void, Void, DeletedRecord[]> {
+    private class GetDeletedRecordReqTask extends AsyncTask<Long, Void, DeletedRecord[]> {
 
         @Override
-        protected DeletedRecord[] doInBackground(Void... voids) {
+        protected DeletedRecord[] doInBackground(Long... params) {
 
+            Long userId = params[0];
             DeletedRecord[] deletedRecords = {};
             try {
                 db =  DatabaseHelper.getInstance(context);
-                Date lastSync = db.getLastSyncDB(2);
+                Date lastSync = db.getLastSyncDB(userId);
                 DateFormat dateFormat = new SimpleDateFormat("yyyy-M-dd HH:mm");
                 String strDate = dateFormat.format(lastSync);
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/deletedrecord";

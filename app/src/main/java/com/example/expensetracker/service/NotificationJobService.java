@@ -18,6 +18,7 @@ import com.example.expensetracker.SettingsActivity;
 import com.example.expensetracker.ViewTripActivity;
 import com.example.expensetracker.domain.NotificationDB;
 import com.example.expensetracker.domain.User;
+import com.example.expensetracker.helper.NetworkStateChecker;
 import com.example.expensetracker.helper.Session;
 
 import org.springframework.http.HttpEntity;
@@ -69,7 +70,7 @@ public class NotificationJobService extends JobService {
                         e.printStackTrace();
                     }
 
-                    if (currentUserObject != null) {
+                    if (currentUserObject != null && NetworkStateChecker.isConnected(getApplicationContext())) {
 
                         new Handler(Looper.getMainLooper()).post(new Runnable() {
                             @Override
@@ -181,10 +182,13 @@ public class NotificationJobService extends JobService {
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
                 ResponseEntity<User> currentUser = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, User.class);
                 return currentUser.getBody();
-            } catch (Exception e) {
-                if (((HttpClientErrorException) e).getStatusCode().value() == 403) {
+            } catch (HttpClientErrorException e) {
+                if (e.getStatusCode().value() == 403) {
 
                 }
+                Log.e("ERROR-GET-User", e.getMessage());
+            }
+            catch (Exception e) {
                 Log.e("ERROR-GET-User", e.getMessage());
             }
             return null;
