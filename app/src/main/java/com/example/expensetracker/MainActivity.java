@@ -349,6 +349,7 @@ public class MainActivity extends AppCompatActivity  implements NetworkStateChec
 
             for (iLoop=0; iLoop<MAX_RETRY; iLoop++) {
                 try {
+                    bSuccess=true;
                     String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/trip?page=" + pageNumber + "&size=10&search=members:" + currentUserObject.getId();
                     HttpHeaders requestHeaders = new HttpHeaders();
                     requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());

@@ -23,6 +23,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -120,23 +121,40 @@ public class SettingsActivity extends AppCompatActivity {
         protected User doInBackground(Boolean... params) {
 
             Boolean isChecked = params[0];
+            final int MAX_RETRY=3;
+            int iLoop;
+            boolean bSuccess = true;
             currentUser.setReceiveNotifications(isChecked);
-            try {
-                String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/user/" + currentUser.getId();
-                HttpHeaders requestHeaders = new HttpHeaders();
-                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
-                HttpEntity requestEntity = new HttpEntity(currentUser, requestHeaders);
-                RestTemplate restTemplate = new RestTemplate();
-                restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                ResponseEntity<User> userResponse = restTemplate.exchange(apiUrl, HttpMethod.PUT, requestEntity, User.class);
-                return userResponse.getBody();
-            } catch (Exception e) {
-                if (((HttpClientErrorException) e).getStatusCode().value() == 403) {
-                    Intent myIntent = new Intent(SettingsActivity.this, LoginActivity.class);
-                    startActivity(myIntent);
+            for (iLoop=0; iLoop<MAX_RETRY; iLoop++) {
+                try {
+                    bSuccess = true;
+                    String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/user/" + currentUser.getId();
+                    HttpHeaders requestHeaders = new HttpHeaders();
+                    requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
+                    HttpEntity requestEntity = new HttpEntity(currentUser, requestHeaders);
+                    HttpComponentsClientHttpRequestFactory clientHttpRequestFactory
+                            = new HttpComponentsClientHttpRequestFactory();
+                    clientHttpRequestFactory.setConnectTimeout(1000);
+                    RestTemplate restTemplate = new RestTemplate(clientHttpRequestFactory);
+                    restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+                    ResponseEntity<User> userResponse = restTemplate.exchange(apiUrl, HttpMethod.PUT, requestEntity, User.class);
+                    userResponse.getBody();
+                    iLoop = 0;
+                    break;
+                } catch (HttpClientErrorException e) {
+                    if (e.getStatusCode().value() == 403) {
+                        Intent myIntent = new Intent(SettingsActivity.this, LoginActivity.class);
+                        startActivity(myIntent);
+                        break;
+                    }
+                    Log.e("ERROR-UPDATE-USER", e.getMessage());
+                } catch (Exception e) {
+                    bSuccess = false;
+                    Log.e("ERROR-UPDATE-USER", e.getMessage());
                 }
-                Log.e("ERROR-UPDATE-USER", e.getMessage());
             }
+            if(bSuccess==false)
+                db.updateLoggedUser(currentUser);
             return null;
         }
 
@@ -152,21 +170,37 @@ public class SettingsActivity extends AppCompatActivity {
         protected User doInBackground(Long... params) {
 
             Long idUser = params[0];
-            try {
-                String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/user/" + idUser;
-                HttpHeaders requestHeaders = new HttpHeaders();
-                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
-                HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
-                RestTemplate restTemplate = new RestTemplate();
-                restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                ResponseEntity<User> currentUser = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, User.class);
-                return currentUser.getBody();
-            } catch (Exception e) {
-                if (((HttpClientErrorException) e).getStatusCode().value() == 403) {
+            final int MAX_RETRY=3;
+            boolean bSuccess = true;
+            int iLoop;
 
+            for (iLoop=0; iLoop<MAX_RETRY; iLoop++) {
+                try {
+                    bSuccess = true;
+                    String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/user/" + idUser;
+                    HttpHeaders requestHeaders = new HttpHeaders();
+                    requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
+                    HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
+                    HttpComponentsClientHttpRequestFactory clientHttpRequestFactory
+                            = new HttpComponentsClientHttpRequestFactory();
+                    clientHttpRequestFactory.setConnectTimeout(1000);
+                    RestTemplate restTemplate = new RestTemplate(clientHttpRequestFactory);
+                    restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+                    ResponseEntity<User> currentUser = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, User.class);
+                    return currentUser.getBody();
+                } catch (HttpClientErrorException e) {
+                    if (e.getStatusCode().value() == 403) {
+                            break;
+                    }
+                    Log.e("ERROR-GET-User", e.getMessage());
                 }
-                Log.e("ERROR-GET-User", e.getMessage());
+                catch (Exception e){
+                    bSuccess = false;
+                    Log.e("ERROR-GET-User", e.getMessage());
+                }
             }
+            if(bSuccess==false)
+                return db.getLoggedUser();
             return new User();
         }
 
@@ -181,25 +215,47 @@ public class SettingsActivity extends AppCompatActivity {
         protected Void doInBackground(User... params) {
 
             User userToLogoutParam = params[0];
-            try {
-                String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/logout";
-                HttpHeaders requestHeaders = new HttpHeaders();
-                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
-                HttpEntity requestEntity = new HttpEntity(userToLogoutParam, requestHeaders);
-                RestTemplate restTemplate = new RestTemplate();
-                restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                ResponseEntity responseEntity = restTemplate.exchange(apiUrl, HttpMethod.POST, requestEntity, null);
-                if (responseEntity.getStatusCode().value() == 200) {
-                    session.setCookie(null);
-                    Intent myIntent = new Intent(SettingsActivity.this, LoginActivity.class);
-                    startActivity(myIntent);
+            final int MAX_RETRY=3;
+            int iLoop;
+            boolean bSuccess=true;
+
+            for (iLoop=0; iLoop<MAX_RETRY; iLoop++) {
+                try {
+                    bSuccess = true;
+                    String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/logout";
+                    HttpHeaders requestHeaders = new HttpHeaders();
+                    requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
+                    HttpEntity requestEntity = new HttpEntity(userToLogoutParam, requestHeaders);
+                    HttpComponentsClientHttpRequestFactory clientHttpRequestFactory
+                            = new HttpComponentsClientHttpRequestFactory();
+                    clientHttpRequestFactory.setConnectTimeout(1000);
+                    RestTemplate restTemplate = new RestTemplate(clientHttpRequestFactory);
+                    restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+                    ResponseEntity responseEntity = restTemplate.exchange(apiUrl, HttpMethod.POST, requestEntity, null);
+                    if (responseEntity.getStatusCode().value() == 200) {
+                        session.setCookie(null);
+                        Intent myIntent = new Intent(SettingsActivity.this, LoginActivity.class);
+                        startActivity(myIntent);
+                        break;
+                    }
+
+                } catch (HttpClientErrorException e) {
+                    Log.e("ERROR-LOGOUT", e.getMessage());
+                    if (e.getStatusCode().value() == 403) {
+                        Intent myIntent = new Intent(SettingsActivity.this, LoginActivity.class);
+                        startActivity(myIntent);
+                        break;
+                    }
                 }
-            } catch (Exception e) {
-                if (((HttpClientErrorException) e).getStatusCode().value() == 403) {
-                    Intent myIntent = new Intent(SettingsActivity.this, LoginActivity.class);
-                    startActivity(myIntent);
+                catch (Exception e){
+                    bSuccess = false;
+                    Log.e("ERROR-LOGOUT", e.getMessage());
                 }
-                Log.e("ERROR-LOGOUT", e.getMessage());
+            }
+            if(bSuccess ==false) {
+                db.deleteAllRecords();
+                Intent myIntent = new Intent(SettingsActivity.this, LoginActivity.class);
+                startActivity(myIntent);
             }
             return null;
         }

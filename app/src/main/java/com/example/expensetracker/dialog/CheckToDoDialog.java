@@ -30,6 +30,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
@@ -110,17 +111,32 @@ public class CheckToDoDialog extends AppCompatDialogFragment {
 
             ToDoObjectWithTrip toDoParam = params[0];
             long noteId = toDoParam.getId();
-            try {
-                String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/note/" + noteId;
-                HttpHeaders requestHeaders = new HttpHeaders();
-                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
-                HttpEntity requestEntity = new HttpEntity(toDoParam, requestHeaders);
-                RestTemplate restTemplate = new RestTemplate();
-                restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                restTemplate.exchange(apiUrl, HttpMethod.PUT, requestEntity, ToDoObjectWithTrip.class);
-            } catch (Exception e) {
-                Log.e("ERROR-UPDATE-TODO", e.getMessage());
+            final int MAX_RETRY=3;
+            int iLoop;
+            boolean bSuccess=true;
+
+            for (iLoop=0; iLoop<MAX_RETRY; iLoop++) {
+                try {
+                    bSuccess = true;
+                    String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/note/" + noteId;
+                    HttpHeaders requestHeaders = new HttpHeaders();
+                    requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
+                    HttpEntity requestEntity = new HttpEntity(toDoParam, requestHeaders);
+                    HttpComponentsClientHttpRequestFactory clientHttpRequestFactory
+                            = new HttpComponentsClientHttpRequestFactory();
+                    clientHttpRequestFactory.setConnectTimeout(1000);
+                    RestTemplate restTemplate = new RestTemplate(clientHttpRequestFactory);
+                    restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+                    restTemplate.exchange(apiUrl, HttpMethod.PUT, requestEntity, ToDoObjectWithTrip.class);
+                    iLoop = 0;
+                    break;
+                } catch (Exception e) {
+                    bSuccess = false;
+                    Log.e("ERROR-UPDATE-TODO", e.getMessage());
+                }
             }
+            if(bSuccess==false)
+                db.updateNote(toDoParam,2);
             return null;
         }
 
@@ -154,20 +170,37 @@ public class CheckToDoDialog extends AppCompatDialogFragment {
 
             ToDoObjectWithTrip[] toDoFromDB = {};
             int tripIdParam = params[0];
-            try {
-                String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/note?search=trip:" + tripIdParam;
-                HttpHeaders requestHeaders = new HttpHeaders();
-                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
-                HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
-                RestTemplate restTemplate = new RestTemplate();
-                restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                ResponseEntity<ToDoObjectWithTrip[]> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, ToDoObjectWithTrip[].class);
-                toDoFromDB = responseEntity.getBody();
+            final int MAX_RETRY=3;
+            int iLoop;
+            boolean bSuccess=true;
 
-            } catch (Exception e) {
-                Log.e("ERROR-GET-TODOs", e.getMessage());
+            for (iLoop=0; iLoop<MAX_RETRY; iLoop++) {
+                try {
+                    bSuccess = true;
+                    String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/note?search=trip:" + tripIdParam;
+                    HttpHeaders requestHeaders = new HttpHeaders();
+                    requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
+                    HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
+                    HttpComponentsClientHttpRequestFactory clientHttpRequestFactory
+                            = new HttpComponentsClientHttpRequestFactory();
+                    clientHttpRequestFactory.setConnectTimeout(1000);
+                    RestTemplate restTemplate = new RestTemplate(clientHttpRequestFactory);
+                    restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+                    ResponseEntity<ToDoObjectWithTrip[]> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, ToDoObjectWithTrip[].class);
+                    toDoFromDB = responseEntity.getBody();
+                    iLoop = 0;
+                    break;
+
+                } catch (Exception e) {
+                    bSuccess = false;
+                    Log.e("ERROR-GET-TODOs", e.getMessage());
+                }
             }
-
+            if(bSuccess == false){
+                ArrayList<ToDoObjectWithTrip> notes = db.getTripNotesList(tripId);
+                if(notes != null)
+                    toDoFromDB=notes.toArray(new ToDoObjectWithTrip[0]);
+            }
             return toDoFromDB;
         }
 

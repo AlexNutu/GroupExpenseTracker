@@ -24,6 +24,7 @@ import com.example.expensetracker.helper.NetworkStateChecker;
 import com.example.expensetracker.helper.Session;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -141,16 +142,23 @@ public class LoginActivity extends AppCompatActivity {
             User resultedUser = new User();
             try {
                 String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/login";
-                RestTemplate restTemplate = new RestTemplate();
+                HttpComponentsClientHttpRequestFactory clientHttpRequestFactory
+                        = new HttpComponentsClientHttpRequestFactory();
+                clientHttpRequestFactory.setConnectTimeout(1000);
+                RestTemplate restTemplate = new RestTemplate(clientHttpRequestFactory);
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
                 ResponseEntity<User> userObjectResult = restTemplate.postForEntity(apiUrl, userToLoginParam, User.class);
                 resultedUser = userObjectResult.getBody();
                 session.setCookie(userObjectResult.getHeaders().get("Set-Cookie").get(0).split("=")[1].split(";")[0]);
                 return resultedUser;
 
-            } catch (Exception e) {
+            } catch (HttpClientErrorException e) {
                 Log.e("ERROR-LOGIN", e.getMessage());
-                resultedUser.setErrorMessage(((HttpClientErrorException) e).getResponseBodyAsString() + "!");
+                resultedUser.setErrorMessage(e.getResponseBodyAsString() + "!");
+                return resultedUser;
+            }catch (Exception e){
+                Log.e("ERROR-LOGIN", e.getMessage());
+                resultedUser.setErrorMessage("Service is temporarily unavailable!");
                 return resultedUser;
             }
         }

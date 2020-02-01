@@ -25,6 +25,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -70,6 +71,12 @@ public class NotificationJobService extends JobService {
                         e.printStackTrace();
                     }
 
+                    if(currentUserObject != null){
+                        String msg = currentUserObject.getErrorMessage();
+                        if(msg!=null)
+                            if(msg.equals("FAILURE"))
+                            return;
+                    }
                     if (currentUserObject != null && NetworkStateChecker.isConnected(getApplicationContext())) {
 
                         new Handler(Looper.getMainLooper()).post(new Runnable() {
@@ -173,25 +180,37 @@ public class NotificationJobService extends JobService {
         protected User doInBackground(Long... params) {
 
             Long idUser = params[0];
-            try {
-                String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/user/" + idUser;
-                HttpHeaders requestHeaders = new HttpHeaders();
-                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
-                HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
-                RestTemplate restTemplate = new RestTemplate();
-                restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                ResponseEntity<User> currentUser = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, User.class);
-                return currentUser.getBody();
-            } catch (HttpClientErrorException e) {
-                if (e.getStatusCode().value() == 403) {
+            final int MAX_RETRY=3;
+            int iLoop;
+            User user = null;
 
+            for (iLoop=0; iLoop<MAX_RETRY; iLoop++) {
+                try {
+                    String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/user/" + idUser;
+                    HttpHeaders requestHeaders = new HttpHeaders();
+                    requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
+                    HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
+                    HttpComponentsClientHttpRequestFactory clientHttpRequestFactory
+                            = new HttpComponentsClientHttpRequestFactory();
+                     clientHttpRequestFactory.setConnectTimeout(1000);
+                    RestTemplate restTemplate = new RestTemplate(clientHttpRequestFactory);
+                    restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+                    ResponseEntity<User> currentUser = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, User.class);
+                    iLoop = 0;
+                    return currentUser.getBody();
+                } catch (HttpClientErrorException e) {
+                    if (e.getStatusCode().value() == 403) {
+
+                    }
+                    Log.e("ERROR-GET-User", e.getMessage());
+                } catch (Exception e) {
+                    Log.e("ERROR-GET-User", e.getMessage());
+                    user = new User();
+                    user.setErrorMessage("FAILURE");
                 }
-                Log.e("ERROR-GET-User", e.getMessage());
             }
-            catch (Exception e) {
-                Log.e("ERROR-GET-User", e.getMessage());
-            }
-            return null;
+
+                return user;
         }
 
         @Override

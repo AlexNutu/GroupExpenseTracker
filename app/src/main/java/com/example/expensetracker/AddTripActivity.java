@@ -22,6 +22,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -134,14 +135,18 @@ public class AddTripActivity extends AppCompatActivity {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
+                    if(insertedTripId != -1) {
+                        Intent myIntent = new Intent(AddTripActivity.this, ViewTripActivity.class);
+                        myIntent.putExtra("tripId", insertedTripId);
+                        myIntent.putExtra("currentUserObject", currentUserObject);
+                        myIntent.putExtra("fromActivity", this.getClass().getSimpleName());
 
-                    Intent myIntent = new Intent(AddTripActivity.this, ViewTripActivity.class);
-                    myIntent.putExtra("tripId", insertedTripId);
-                    myIntent.putExtra("currentUserObject", currentUserObject);
-                    myIntent.putExtra("fromActivity", this.getClass().getSimpleName());
+                        startActivity(myIntent);
+                        finish();
+                    }else{
+                        Toast.makeText(AddTripActivity.this, "Service is temporarily unavailable!", Toast.LENGTH_SHORT).show();
+                    }
 
-                    startActivity(myIntent);
-                    finish();
                 }
             }
         });
@@ -158,15 +163,21 @@ public class AddTripActivity extends AppCompatActivity {
                 HttpHeaders requestHeaders = new HttpHeaders();
                 requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
                 HttpEntity requestEntity = new HttpEntity(tripToAdd, requestHeaders);
-                RestTemplate restTemplate = new RestTemplate();
+                HttpComponentsClientHttpRequestFactory clientHttpRequestFactory
+                        = new HttpComponentsClientHttpRequestFactory();
+                //Connect timeout
+                clientHttpRequestFactory.setConnectTimeout(1000);
+                RestTemplate restTemplate = new RestTemplate(clientHttpRequestFactory);
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
                 ResponseEntity<Trip> tripResponse = restTemplate.exchange(apiUrl, HttpMethod.POST, requestEntity, Trip.class);
                 return tripResponse.getBody().getId();
-            } catch (Exception e) {
-                if (((HttpClientErrorException) e).getStatusCode().value() == 403) {
+            } catch (HttpClientErrorException e) {
+                if (e.getStatusCode().value() == 403) {
                     Intent myIntent = new Intent(AddTripActivity.this, LoginActivity.class);
                     startActivity(myIntent);
                 }
+                Log.e("ERROR-ADD-TRIP", e.getMessage());
+            }catch (Exception e){
                 Log.e("ERROR-ADD-TRIP", e.getMessage());
             }
             return -1;

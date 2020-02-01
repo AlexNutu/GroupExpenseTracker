@@ -25,13 +25,13 @@
     <show-object-properties value="true" />
     <loaded-nodes>
       <connection connection-id="dc4c0cd8-f7bf-4ef6-8833-072493213aa8">
-        <schema name="main" object-types="constraint, dataset trigger, table, view, column" />
+        <schema name="main" object-types="column, table, constraint, dataset trigger, view, index" />
       </connection>
     </loaded-nodes>
   </component>
   <component name="DBNavigator.Project.DatabaseConsoleManager">
     <connection id="dc4c0cd8-f7bf-4ef6-8833-072493213aa8">
-      <console name="Connection" type="STANDARD" schema="main" session="Main"><![CDATA[select * from sync_db
+      <console name="Connection" type="STANDARD" schema="main" session="Main">select * from sync_db
 
 select * from trip;
 
@@ -39,7 +39,13 @@ select * from user_profile;
 
 select * from user_trip;
 
-select * from note;]]></console>
+select * from note;
+
+select * from expense;
+
+select * from logged_user;
+
+select * from report;</console>
     </connection>
   </component>
   <component name="DBNavigator.Project.DatabaseFileManager">

@@ -3,14 +3,12 @@ package com.example.expensetracker.helper;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import com.example.expensetracker.domain.DeletedRecord;
 import com.example.expensetracker.domain.Expense;
-import com.example.expensetracker.domain.Report;
 import com.example.expensetracker.domain.ToDoObjectWithTrip;
 import com.example.expensetracker.domain.Trip;
 import com.example.expensetracker.domain.User;
@@ -42,7 +40,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String TABLE_USER_TRIP = "user_trip";
     private static final String TABLE_EXPENSE = "expense";
     private static final String TABLE_NOTE= "note";
-    private static final String TABLE_NOTIFICATION= "notification";
     private static final String TABLE_SYNC_DB = "sync_db";
     private static final String TABLE_LOGGED_USER = "logged_user";
     private static final String TABLE_REPORT = "report";
@@ -65,7 +62,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String KEY_DESTINATION = "destination";
     private static final String KEY_START_DATE = "start_date";
     private static final String KEY_END_DATE = "end_date";
-    //private static final String KEY_FOUNDER_ID = "founder_id ";
 
     // USER_TRIP Table - column names
     private static final String KEY_TRIP_ID = "trip_id";
@@ -81,11 +77,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     // NOTE Table - column names
     private static final String KEY_MESSAGE= "message";
     private static final String KEY_APPROVED = "approved";
-
-
-    // NOTIFICATION Table - column names
-    private static final String KEY_TITLE = "title";
-    private static final String KEY_SENT = "sent";
 
     // SYNC_DB Table - column names
     private static final String KEY_LAST_SYNC_DATE = "last_sync_date";
@@ -158,24 +149,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             + " FOREIGN KEY ("+KEY_TRIP_ID+") REFERENCES "+TABLE_TRIP+"("+KEY_ID+"),"
             + " FOREIGN KEY ("+KEY_USER_ID+") REFERENCES "+TABLE_USER_PROFILE+"("+KEY_ID+"));";
 
-    // NOTIFICATION table create statement
-    private static final String CREATE_TABLE_NOTIFICATION = "CREATE TABLE " + TABLE_NOTIFICATION
-            + "(" + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
-            + KEY_CREATE_DATE + " DATETIME,"
-            + KEY_MODIFY_DATE + " DATETIME,"
-            + KEY_TITLE + " TEXT,"
-            + KEY_MESSAGE + " TEXT,"
-            + KEY_USER_ID + " INTEGER,"
-            + KEY_SENT + " NUMERIC,"
-            + KEY_STATUS + " NUMERIC,"
-            + " FOREIGN KEY ("+KEY_USER_ID+") REFERENCES "+TABLE_USER_PROFILE+"("+KEY_ID+"));";
 
     // NOTIFICATION table create statement
     private static final String CREATE_TABLE_SYNC_DB = "CREATE TABLE " + TABLE_SYNC_DB
             + "(" + KEY_USER_ID + " INTEGER PRIMARY KEY,"
             + KEY_LAST_SYNC_DATE + " DATETIME);";
 
-    //LOGGED_USER
+    //LOGGED_USER table create statement
     private static final String CREATE_TABLE_LOGGED_USER = "CREATE TABLE " + TABLE_LOGGED_USER
             + "(" + KEY_ID + " INTEGER PRIMARY KEY,"
             + KEY_CREATE_DATE + " DATETIME,"
@@ -188,7 +168,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             + KEY_STATUS + " NUMERIC"+")";
     private static DatabaseHelper sInstance;
 
-    //REPORT
+    //REPORT table create statement
     private static final String CREATE_TABLE_REPORT = "CREATE TABLE " + TABLE_REPORT
             + "(" + KEY_TRIP_ID + " INTEGER,"
             + KEY_USER_ID + " INTEGER,"
@@ -223,7 +203,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
 
-
     @Override
     public void onCreate(SQLiteDatabase db) {
 
@@ -233,7 +212,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(CREATE_TABLE_EXPENSE);
         db.execSQL(CREATE_TABLE_USER_TRIP);
         db.execSQL(CREATE_TABLE_NOTE);
-        db.execSQL(CREATE_TABLE_NOTIFICATION);
         db.execSQL(CREATE_TABLE_SYNC_DB);
         db.execSQL(CREATE_TABLE_REPORT);
         db.execSQL(CREATE_TABLE_LOGGED_USER);
@@ -247,15 +225,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_EXPENSE);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_USER_TRIP);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_NOTE);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_NOTIFICATION);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_SYNC_DB);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_REPORT);
 
         // create new tables
         onCreate(db);
     }
-
-
 
 
     // SYNC_DB
@@ -327,7 +302,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         db.beginTransaction();
 
-
         try {
             ContentValues values = new ContentValues();
             values.put(KEY_ID, trip.getId());
@@ -352,11 +326,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
 
     // update Trip
-
     public void updateTrip(Trip trip) {
         SQLiteDatabase db = this.getWritableDatabase();
         db.beginTransaction();
-
 
         try {
             ContentValues values = new ContentValues();
@@ -368,7 +340,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             values.put(KEY_END_DATE, trip.getEndDate());
             values.put(KEY_STATUS, 1);
 
-            // Notice how we haven't specified the primary key. SQLite auto increments the primary key column.
            db.update(TABLE_TRIP, values, KEY_ID + " = ?",
                     new String[] { String.valueOf(trip.getId())});
             db.setTransactionSuccessful();
@@ -969,7 +940,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     // Delete all
     public void deleteAllRecords()
-
     {
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -1000,6 +970,3 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 }
-
-
-

@@ -40,6 +40,7 @@ import org.springframework.http.ResponseEntity;
 
 import com.example.expensetracker.helper.DatabaseHelper;
 
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -238,25 +239,40 @@ public class ViewTripActivity extends AppCompatActivity implements ExpenseDialog
 
             Integer idTrip = params[0];
             Trip currentTrip = null;
-            try {
-                String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/trip/" + idTrip;
-                HttpHeaders requestHeaders = new HttpHeaders();
-                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
-                HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
-                RestTemplate restTemplate = new RestTemplate();
-                restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                ResponseEntity<Trip> tripResponse = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, Trip.class);
-                currentTrip = tripResponse.getBody();
+            final int MAX_RETRY=3;
+            int iLoop;
+            boolean bSuccess=true;
+            Trip[] tripsFromDB = {};
 
-                return currentTrip;
-            } catch (Exception e) {
-                if (((HttpClientErrorException) e).getStatusCode().value() == 403) {
-                    Intent myIntent = new Intent(ViewTripActivity.this, LoginActivity.class);
-                    startActivity(myIntent);
+            for (iLoop=0; iLoop<MAX_RETRY; iLoop++) {
+                try {
+                    bSuccess = true;
+                    String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/trip/" + idTrip;
+                    HttpHeaders requestHeaders = new HttpHeaders();
+                    requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
+                    HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
+                    HttpComponentsClientHttpRequestFactory clientHttpRequestFactory
+                            = new HttpComponentsClientHttpRequestFactory();
+                    //Connect timeout
+                    clientHttpRequestFactory.setConnectTimeout(1000);
+                    RestTemplate restTemplate = new RestTemplate(clientHttpRequestFactory);
+                    restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+                    ResponseEntity<Trip> tripResponse = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, Trip.class);
+                    currentTrip = tripResponse.getBody();
+                    iLoop = 0;
+                    break;
+                } catch (HttpClientErrorException e) {
+                    if (e.getStatusCode().value() == 403) {
+                        Intent myIntent = new Intent(ViewTripActivity.this, LoginActivity.class);
+                        startActivity(myIntent);
+                    }
+                } catch (Exception e) {
+                    bSuccess = false;
+                    Log.e("ERROR-GET-TRIP", e.getMessage());
                 }
-                Log.e("ERROR-GET-TRIP", e.getMessage());
-                currentTrip = db.getTripById(idTrip);
             }
+                if(bSuccess == false)
+                    currentTrip = db.getTripById(idTrip);
             return currentTrip;
         }
 
@@ -279,38 +295,53 @@ public class ViewTripActivity extends AppCompatActivity implements ExpenseDialog
         protected Expense doInBackground(Expense... params) {
 
             final Expense expenseParam = params[0];
-            try {
-                String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/expense";
-                HttpHeaders requestHeaders = new HttpHeaders();
-                requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
-                HttpEntity requestEntity = new HttpEntity(expenseParam, requestHeaders);
-                RestTemplate restTemplate = new RestTemplate();
-                restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                restTemplate.exchange(apiUrl, HttpMethod.POST, requestEntity, Expense.class);
+            final int MAX_RETRY=3;
+            int iLoop;
+            boolean bSuccess=true;
+            for (iLoop=0; iLoop<MAX_RETRY; iLoop++) {
+                try {
+                    bSuccess = true;
+                    String apiUrl = "http://10.0.2.2:8080/group-expensive-tracker/expense";
+                    HttpHeaders requestHeaders = new HttpHeaders();
+                    requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
+                    HttpEntity requestEntity = new HttpEntity(expenseParam, requestHeaders);
+                    HttpComponentsClientHttpRequestFactory clientHttpRequestFactory
+                            = new HttpComponentsClientHttpRequestFactory();
+                    //Connect timeout
+                    clientHttpRequestFactory.setConnectTimeout(1000);
+                    RestTemplate restTemplate = new RestTemplate(clientHttpRequestFactory);
+                    restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+                    restTemplate.exchange(apiUrl, HttpMethod.POST, requestEntity, Expense.class);
+                    iLoop = 0;
+                    break;
 
-            } catch (HttpClientErrorException e) {
-                if (e.getStatusCode().value() == 403) {
-                    Intent myIntent = new Intent(ViewTripActivity.this, LoginActivity.class);
-                    startActivity(myIntent);
+                } catch (HttpClientErrorException e) {
+                    if (e.getStatusCode().value() == 403) {
+                        Intent myIntent = new Intent(ViewTripActivity.this, LoginActivity.class);
+                        startActivity(myIntent);
+                    }
+                } catch (final HttpServerErrorException e) {
+                    JSONObject jsonObject = null;
+                    try {
+                        jsonObject = new JSONObject(e.getResponseBodyAsString());
+                    } catch (JSONException ex) {
+                        ex.printStackTrace();
+                    }
+                    try {
+                        String errorM = jsonObject.getString("message");
+                        Expense expense = new Expense();
+                        expense.setErrorMessage(errorM);
+                        return expense;
+                    } catch (JSONException ex) {
+                        ex.printStackTrace();
+                    }
+                } catch (Exception e) {
+                    bSuccess = false;
+                    Log.e("ERROR-ADD-EXPENSE", e.getMessage());
                 }
-            } catch (final HttpServerErrorException e) {
-                JSONObject jsonObject = null;
-                try {
-                    jsonObject = new JSONObject(e.getResponseBodyAsString());
-                } catch (JSONException ex) {
-                    ex.printStackTrace();
-                }
-                try {
-                    String errorM = jsonObject.getString("message");
-                    Expense expense = new Expense();
-                    expense.setErrorMessage(errorM);
-                    return expense;
-                } catch (JSONException ex) {
-                    ex.printStackTrace();
-                }
-            } catch (Exception e) {
-                Log.e("ERROR-ADD-EXPENSE", e.getMessage());
             }
+            if(bSuccess == false)
+                expenseParam.setErrorMessage("Service temporarily unavailable!");
             return expenseParam;
         }
 

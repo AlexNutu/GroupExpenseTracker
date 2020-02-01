@@ -33,6 +33,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
@@ -328,7 +329,10 @@ public class AddComplexExpenseDialog extends AppCompatDialogFragment {
                 HttpHeaders requestHeaders = new HttpHeaders();
                 requestHeaders.add("Cookie", "JSESSIONID=" + session.getCookie());
                 HttpEntity requestEntity = new HttpEntity(null, requestHeaders);
-                RestTemplate restTemplate = new RestTemplate();
+                HttpComponentsClientHttpRequestFactory clientHttpRequestFactory
+                        = new HttpComponentsClientHttpRequestFactory();
+                clientHttpRequestFactory.setConnectTimeout(1000);
+                RestTemplate restTemplate = new RestTemplate(clientHttpRequestFactory);
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
                 ResponseEntity<Expense[]> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, Expense[].class);
                 if (responseEntity.getBody() != null) {
