@@ -12,4 +12,15 @@
         android:text="Group Expense Tracker"
         android:textStyle="bold" />
 
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="170dp">
+
+        <VideoView
+            android:id="@+id/demo_vieo_view"
+            android:layout_width="match_parent"
+            android:layout_height="170dp" />
+
+    </FrameLayout>
+
 </RelativeLayout>

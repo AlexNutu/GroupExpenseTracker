@@ -3,10 +3,15 @@ package com.example.expensetracker.dialog;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.WindowManager;
+import android.widget.MediaController;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.VideoView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -43,6 +48,20 @@ public class DemoDialog extends AppCompatDialogFragment {
 
         dialogTitle = (TextView) view.findViewById(R.id.demoDialogTitle);
 
-        return builder.create();
+        final AlertDialog dialog = builder.create();
+        final VideoView video_player_view = (VideoView) view.findViewById(R.id.demo_vieo_view);
+
+        WindowManager.LayoutParams lp = new WindowManager.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        lp.copyFrom(dialog.getWindow().getAttributes());
+        dialog.getWindow().setAttributes(lp);
+
+        String videoPath = "android.resource://" + getActivity().getPackageName() + "/" + R.raw.group_expense_demo;
+        Uri uri = Uri.parse(videoPath);
+
+        video_player_view.setVideoURI(uri);
+        video_player_view.start();
+
+
+        return dialog;
     }
 }
